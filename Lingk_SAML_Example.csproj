@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DocuSign.Click" Version="1.0.0-alpha" />
+    <PackageReference Include="DocuSign.eSign.dll" Version="5.2.0" />
+    <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.0.8" />
+    <PackageReference Include="ITfoxtec.Identity.Saml2.MvcCore" Version="4.0.8" />
+  </ItemGroup>
+
+</Project>
