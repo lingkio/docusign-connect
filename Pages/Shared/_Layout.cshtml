@@ -25,7 +25,7 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Claims">SAML Claims</a>
                             </li>
-                              <li class="nav-item">
+                            <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Docusign">Docusign Claims</a>
                             </li>
                             <li>
@@ -47,6 +47,8 @@
                         else
                         {
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Auth" asp-action="SamlRegistration">Register
+                                    SAML</a>
                                 <a class="nav-link text-dark" asp-controller="Auth" asp-action="Login">Login</a>
                             </li>
                         }

@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
+using Lingk_SAML_Example.Controllers;
 
 namespace Lingk_SAML_Example
 {
@@ -28,6 +29,7 @@ namespace Lingk_SAML_Example
         {
             services.AddRazorPages();
             services.Configure<Saml2Configuration>(Configuration.GetSection("Saml2"));
+
 
             services.Configure<Saml2Configuration>(saml2Configuration =>
             {
