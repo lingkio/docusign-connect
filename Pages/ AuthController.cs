@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Lingk_SAML_Example.Pages;
 using System.ServiceModel.Security;
 using System.Security.Cryptography.X509Certificates;
+using Lingk_SAML_Example.Common;
 
 namespace Lingk_SAML_Example.Controllers
 {

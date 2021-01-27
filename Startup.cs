@@ -15,6 +15,7 @@ using Lingk_SAML_Example.Controllers;
 using YamlDotNet.Serialization;
 using System.IO;
 using Lingk_SAML_Example.Pages;
+using Lingk_SAML_Example.Common;
 
 namespace Lingk_SAML_Example
 {
