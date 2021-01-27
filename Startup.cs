@@ -12,6 +12,9 @@ using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
 using Lingk_SAML_Example.Controllers;
+using YamlDotNet.Serialization;
+using System.IO;
+using Lingk_SAML_Example.Pages;
 
 namespace Lingk_SAML_Example
 {
@@ -20,6 +23,19 @@ namespace Lingk_SAML_Example
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            var reader = new StreamReader("./example-docusign.yaml");
+            var deserializer = new DeserializerBuilder().Build();
+            var yamlObject = deserializer.Deserialize(reader);
+
+            var serializer = new SerializerBuilder()
+                .JsonCompatible()
+                .Build();
+
+            var json = serializer.Serialize(yamlObject);
+            System.IO.File.WriteAllText("./setting.json", json);
+            var builder = new ConfigurationBuilder()
+          .AddJsonFile("./setting.json");
+            this.Configuration = builder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -31,13 +47,14 @@ namespace Lingk_SAML_Example
             services.Configure<Saml2Configuration>(Configuration.GetSection("Saml2"));
 
 
+            services.Configure<LingkConfig>(Configuration); 
             services.Configure<Saml2Configuration>(saml2Configuration =>
             {
-                saml2Configuration.AllowedAudienceUris.Add(saml2Configuration.Issuer);
+                saml2Configuration.AllowedAudienceUris.Add(this.Configuration["authn:saml:issuerId"]);
 
                 var entityDescriptor = new EntityDescriptor();
                 //entityDescriptor.ReadIdPSsoDescriptorFromFile(:oasis:names:tc:SAML:2.0:bindings:HTTP-POST' Location='https://lingk-int.auth0.com/samlp/ZzbpkpYIE0OXMfnOvm3yePjdrW3E7nrn'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='E-Mail Address'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Given Name'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Name'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Surname'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Name ID'/></IDPSSODescriptor></EntityDescriptor>");
-                entityDescriptor.ReadIdPSsoDescriptorFromFile("./metadata.xml");
+                entityDescriptor.ReadIdPSsoDescriptorFromFile(this.Configuration["authn:saml:metadataLocal"]);
                 if (entityDescriptor.IdPSsoDescriptor != null)
                 {
                     saml2Configuration.SingleSignOnDestination = entityDescriptor.IdPSsoDescriptor.SingleSignOnServices.First().Location;

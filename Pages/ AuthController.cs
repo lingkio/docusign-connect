@@ -14,6 +14,9 @@ using System.Text;
 using RestSharp;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
+using Lingk_SAML_Example.Pages;
+using System.ServiceModel.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Lingk_SAML_Example.Controllers
 {
@@ -23,21 +26,25 @@ namespace Lingk_SAML_Example.Controllers
     {
         const string relayStateReturnUrl = "ReturnUrl";
         private readonly Saml2Configuration config;
-        public static IConfiguration Configuration { get; }
-        public static string MyAwesomeString = Configuration.GetSection("appSettings")["Auth"].ToString();
-        public AuthController(IOptions<Saml2Configuration> configAccessor)
+        private readonly LingkConfig _lingkConfig;
+        // public static IConfiguration Configuration { get; }
+        public AuthController(IOptions<Saml2Configuration> configAccessor, IOptions<LingkConfig> lingkConfig)
         {
             config = configAccessor.Value;
+            config.SignatureAlgorithm = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
+            config.CertificateValidationMode = X509CertificateValidationMode.None;
+            config.RevocationMode = X509RevocationMode.NoCheck;
+            _lingkConfig = lingkConfig.Value;
         }
 
         [Route("SamlRegistration")]
         public IActionResult SamlRegistration()
         {
             var apiClient = new HttpClient();
-            var authCrd = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Auth");
+            // var authCrd = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Auth");
             var nvc = new List<KeyValuePair<string, string>>();
-            nvc.Add(new KeyValuePair<string, string>("client_id", authCrd["client_id"]));
-            nvc.Add(new KeyValuePair<string, string>("client_secret", authCrd["client_secret"]));
+            nvc.Add(new KeyValuePair<string, string>("client_id", _lingkConfig.LingkProject.ClientId));
+            nvc.Add(new KeyValuePair<string, string>("client_secret", _lingkConfig.LingkProject.ClientSecret));
             nvc.Add(new KeyValuePair<string, string>("audience", "https://lingk-int.auth0.com/api/v2/"));
             nvc.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
             var req = new HttpRequestMessage(HttpMethod.Post, "https://lingk-int.auth0.com/oauth/token") { Content = new FormUrlEncodedContent(nvc) };
