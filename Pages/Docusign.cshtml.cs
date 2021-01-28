@@ -10,16 +10,20 @@ using System.Security.Claims;
 using DocuSign.eSign.Api;
 using DocuSign.eSign.Model;
 using System.Text;
-using DocuSign.eSign.Client;
 using System.Web;
-using System.Net.Http;
 using System.Net.Http.Headers;
+using Lingk_SAML_Example.Common;
+using Microsoft.Extensions.Options;
+using System.Net.Http;
+using DocuSign.eSign.Client;
+using Lingk_SAML_Example.Utils;
 
 namespace Lingk_SAML_Example.Pages
 {
     [Authorize]
     public class DocusignModel : PageModel
     {
+        public string ClaimUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public string Url { get; set; }
         public string Name { get; set; }
 
@@ -27,150 +31,116 @@ namespace Lingk_SAML_Example.Pages
         public string Upn { get; set; }
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
-        private const string accessToken = "eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQsAAAABAAUABwCAXIjmxMLYSAgAgJyr9AfD2EgCAOw1EzREnWlDg32c-YTRAT0VAAEAAAAYAAEAAAAFAAAADQAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0IgAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0EgABAAAACwAAAGludGVyYWN0aXZlMAAAxu_lxMLYSDcAauD9G-Z56kiYXQjsWzua6A.CdH-BA3P94D4GgPsusf7nyjqgw3Mi_I5a5Rd3uPsYPO2W9leF730ZAiMGBYnhe1fS0eRtAwj87yHIBtpsmAphTnSfmfFXlJJEJVGD9aCHnDajHAzv76f-pZGX66KgbfmSciCWVyhwL6a5nGwp60WI3u5_6J7cgp-TYs93WMRVLsMjJ337GvE_PcOfsHrz2VdBwzidcjJGS-Y6kVnVJw4d7A5PfMNPoGQhsar7yOZ1U5PLlgOxAYoNtv-qIWW-Mrl3H2-Ke4DlQeFSzX4b-7flKO3VUcGepR5TpsQdAAJmdfySYfL8rcFen9vGW5RH7upiK8Ax1apX37HwR1c-S143A";
-        public DocusignModel(ILogger<DocusignModel> logger)
+        private readonly LingkConfig _lingkConfig;
+        private const string accessToken = "eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAAEgiWS8PYSAgAAFIrpI7D2EgCAOw1EzREnWlDg32c-YTRAT0VAAEAAAAYAAEAAAAFAAAADQAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0IgAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0MACAcNdISsPYSDcAauD9G-Z56kiYXQjsWzua6A.aKgLqL1i8PeyP_15JtUMMsnHcFoBy3Yvwbzl22k4fSbgmMxl47SOcWGZ6Pu1XqXTfsFhA9WixDYBBi5LzaLvUF5UMztgCUybByNMmfesqBqpzmmHaevH5geeMc8qJkbVY0gNebjvcVWwE9EeUIzJ1KH9i_uNq4uGPlQUtzRphRgjWrcW8nZBeV_Xw7AOVkgZmnAexz_j_oyN6FmFHKVLiP7n1YyD6yHLBcpedHNej-yEwM6kHRm_qfNOWx9b4pY1qDiN3lKT7hTVSnwq5tqoCBDyzbKn0fLG8Ofd_FN92kvL8L7odoTvgRALb3EKgSxEr-6mEGzYd-OWFp3OSS6M8A";
+        public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
             _logger = logger;
+            _lingkConfig = lingkConfig.Value;
         }
 
         public void OnGet()
         {
-            foreach (Claim claim in User.Claims)
-            {
-                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name")
-                {
-                    Name = claim.Value;
-                }
-                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")
-                {
-                    Upn = claim.Value;
-                }
-                if (claim.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")
-                {
-                    PresentAddress = claim.Value;
-                }
-            }
-            var url = CreateURL("yachikaralhan49@gmail.com", "Yachika Ralhan", "yachikaralhan49@gmail.com",
-            "Yachika Ralhan", "d883b52c-5b94-41dc-8da5-546fb193e120", "aecbc359-1111-4e81-9823-1a3d08d9a221");
-            Url = url;
+            var name = GetClaimsByType("name");
+            var emailAddress = GetClaimsByType("emailaddress");
+            Url = CreateURL(emailAddress, name, emailAddress, name);
         }
-
-        public string CreateURL(string signerEmail, string signerName, string ccEmail,
-         string ccName, string templateId, string accountId)
+        public string GetClaimsByType(string claimType)
         {
-
+            return User.Claims.FirstOrDefault((claim) =>
+            {
+                return claim.Type == ClaimUrl + claimType;
+            }).Value;
+        }
+        public string CreateURL(string signerEmail, string signerName, string ccEmail,
+         string ccName)
+        {
+            var accountId = _lingkConfig.Envelopes[0].Account;
+            var templateId = _lingkConfig.Envelopes[0].Template;
+            var lingkEnvelopFilePath = AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json";
+            var envResp = LingkFile.CheckEnvelopExists(lingkEnvelopFilePath,
+              new LingkEnvelop
+              {
+                  accountId = accountId,
+                  templateId = templateId
+              });
+            if (envResp != null)
+            {
+                return envResp.recipientUrl;
+            }
+            string existingEnvelopeId = null;
             var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + accessToken);
 
-
-            Text includedOnTemplate = new Text
-            {
-                TabLabel = "permAddress",
-                Value = Upn
-            };
-            Text presentAddressTemplate = new Text
-            {
-                TabLabel = "presentAddress",
-                Value = PresentAddress
-            };
-
-            // We can also add a new tab (field) to the ones already in the template
-            Text addedField = new Text
-            {
-                DocumentId = "1",
-                PageNumber = "1",
-                Font = "helvetica",
-                FontSize = "size14",
-                TabLabel = "nameLabel",
-                Height = "23",
-                Width = "84",
-                Required = "false",
-                Bold = "true",
-                Value = Name,
-                Locked = "false"
-            };
-
-            // Add the tabs model (including the SignHere tab) to the signer.
-            // The Tabs object wants arrays of the different field/tab types
-            // Tabs are set per recipient/signer
-            Tabs tabs = new Tabs
-            {
-                TextTabs = new List<Text> { includedOnTemplate, addedField, presentAddressTemplate },
-            };
-
-            // Create a signer recipient to sign the document, identified by name and email
-            // We're setting the parameters via the object creation
-            TemplateRole signer = new TemplateRole
-            {
-                Email = signerEmail,
-                Name = signerName,
-                RoleName = "signer",
-                ClientUserId = signerClientId, // Change the signer to be embedded
-                Tabs = tabs //Set tab values
-            };
-
-            TemplateRole cc = new TemplateRole
-            {
-                Email = ccEmail,
-                Name = ccName,
-                RoleName = "cc"
-            };
-
-
-            // Step 4: Create the envelope definition
-            EnvelopeDefinition envelopeAttributes = new EnvelopeDefinition
-            {
-                // Uses the template ID received from example 08
-                TemplateId = templateId,
-                Status = "Sent",
-                // Add the TemplateRole objects to utilize a pre-defined
-                // document and signing/routing order on an envelope.
-                // Template role names need to match what is available on
-                // the correlated templateID or else an error will occur
-                TemplateRoles = new List<TemplateRole> { signer, cc }
-            };
-
-            // Step 5: Call the eSignature REST API
+            var envelopeId = existingEnvelopeId;
             var envelopesApi = new EnvelopesApi(apiClient);
-            EnvelopeSummary results = envelopesApi.CreateEnvelope(accountId, envelopeAttributes);
+            if (envelopeId == null)
+            {
+                List<Text> textTabs = new List<Text>();
+                for (int i = 0; i < _lingkConfig.Envelopes[0].Tabs.Length; i++)
+                {
+                    textTabs.Add(new Text
+                    {
+                        TabLabel = _lingkConfig.Envelopes[0].Tabs[i].Id,
+                        Value = GetClaimsByType(_lingkConfig.Envelopes[0].Tabs[i].SourceDataField)
+                    });
+                };
 
-            // Step 6: Create the View Request
-            var envelopeId = results.EnvelopeId;
+
+                Tabs tabs = new Tabs
+                {
+                    TextTabs = textTabs,
+                };
+
+                TemplateRole signer = new TemplateRole
+                {
+                    Email = signerEmail,
+                    Name = signerName,
+                    RoleName = "signer",
+                    ClientUserId = signerClientId, // Change the signer to be embedded
+                    Tabs = tabs //Set tab values
+                };
+
+                TemplateRole cc = new TemplateRole
+                {
+                    Email = ccEmail,
+                    Name = ccName,
+                    RoleName = "cc"
+                };
+
+                // Step 4: Create the envelope definition
+                EnvelopeDefinition envelopeAttributes = new EnvelopeDefinition
+                {
+                    // Uses the template ID received from example 08
+                    TemplateId = templateId,
+
+                    Status = "Sent",
+                    TemplateRoles = new List<TemplateRole> { signer, cc }
+                };
+
+                EnvelopeSummary results = envelopesApi.CreateEnvelope(accountId, envelopeAttributes);
+                envelopeId = results.EnvelopeId;
+            };
+
+
             RecipientViewRequest viewRequest = new RecipientViewRequest();
-            // Set the URL where you want the recipient to go once they are done signing;
-            // this should typically be a callback route somewhere in your app.
-            // The query parameter is included as an example of how
-            // to save/recover state information during the redirect to
-            // the DocuSign signing ceremony. It's usually better to use
-            // the session mechanism of your web framework. Query parameters
-            // can be changed/spoofed very easily
             viewRequest.ReturnUrl = "https://localhost:3002?state=123";
-
-            // How has your app authenticated the user? In addition to your app's authentication,
-            // you can include authentication steps from DocuSign; e.g., SMS authentication
             viewRequest.AuthenticationMethod = "none";
-
-            // Recipient information must match the embedded recipient info
-            // that we used to create the envelope
             viewRequest.Email = signerEmail;
             viewRequest.UserName = signerName;
             viewRequest.ClientUserId = signerClientId;
 
-            // DocuSign recommends that you redirect to DocuSign for the
-            // signing ceremony. There are multiple ways to save state.
-            // To maintain your application's session, use the PingUrl
-            // parameter. It causes the DocuSign Signing Ceremony web page
-            // (not the DocuSign server) to send pings via AJAX to your app
-            // seconds
-            // NOTE: The pings will only be sent if the pingUrl is an HTTPS address
+            ViewUrl results1 = envelopesApi.CreateRecipientView(accountId, envelopeId, viewRequest);
 
-            ViewUrl results1 = envelopesApi.CreateRecipientView(accountId, results.EnvelopeId, viewRequest);
-            //***********
-            // Don't use an iframe with embedded signing requests!
-            //***********
-            // State can be stored/recovered using the framework's session or a
-            // query parameter on the return URL (see the makeRecipientViewRequest method)
             string redirectUrl = results1.Url;
+            LingkFile.AddDocusignEnvelop(lingkEnvelopFilePath,
+             new LingkEnvelop
+             {
+                 envelopId = envelopeId,
+                 accountId = accountId,
+                 recipientUrl = redirectUrl,
+                 templateId = templateId
+             });
             return redirectUrl;
         }
     }

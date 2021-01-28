@@ -1,9 +1,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-
 using System.Globalization;
-
 using Newtonsoft.Json.Converters;
 
 namespace Lingk_SAML_Example.Common
@@ -52,6 +50,9 @@ namespace Lingk_SAML_Example.Common
         [JsonProperty("template")]
         public string Template { get; set; }
 
+        [JsonProperty("template")]
+        public string Account { get; set; }
+
         [JsonProperty("url")]
         public string Url { get; set; }
 
@@ -69,6 +70,9 @@ namespace Lingk_SAML_Example.Common
 
         [JsonProperty("sourceDataField")]
         public string SourceDataField { get; set; }
+
+        [JsonProperty("type")]
+        public string Type { get; set; }
     }
 
     public partial class LingkProject
@@ -78,5 +82,13 @@ namespace Lingk_SAML_Example.Common
 
         [JsonProperty("clientSecret")]
         public string ClientSecret { get; set; }
+    }
+
+    public partial class LingkEnvelop
+    {
+        public string templateId { get; set; }
+        public string accountId { get; set; }
+        public string envelopId { get; set; }
+        public string recipientUrl { get; set; }
     }
 }

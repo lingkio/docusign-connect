@@ -16,6 +16,8 @@ using YamlDotNet.Serialization;
 using System.IO;
 using Lingk_SAML_Example.Pages;
 using Lingk_SAML_Example.Common;
+using Microsoft.AspNetCore.Http;
+using Lingk_SAML_Example.Utils;
 
 namespace Lingk_SAML_Example
 {
@@ -33,10 +35,12 @@ namespace Lingk_SAML_Example
                 .Build();
 
             var json = serializer.Serialize(yamlObject);
-            System.IO.File.WriteAllText("./setting.json", json);
-            var builder = new ConfigurationBuilder()
-          .AddJsonFile("./setting.json");
+            var settingPath = AppDomain.CurrentDomain.BaseDirectory + "./setting.json";
+            LingkFile.Create(settingPath, json);
+            var builder = new ConfigurationBuilder().AddJsonFile(settingPath);
             this.Configuration = builder.Build();
+            File.Delete(settingPath);
+            LingkFile.Create(AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json", "");
         }
 
         public IConfiguration Configuration { get; }
@@ -45,10 +49,8 @@ namespace Lingk_SAML_Example
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-            services.Configure<Saml2Configuration>(Configuration.GetSection("Saml2"));
 
-
-            services.Configure<LingkConfig>(Configuration); 
+            services.Configure<LingkConfig>(Configuration);
             services.Configure<Saml2Configuration>(saml2Configuration =>
             {
                 saml2Configuration.AllowedAudienceUris.Add(this.Configuration["authn:saml:issuerId"]);
