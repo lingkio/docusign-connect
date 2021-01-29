@@ -26,21 +26,26 @@ namespace Lingk_SAML_Example.Pages
         public string ClaimUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public string Url { get; set; }
         public string Name { get; set; }
-
+        private readonly string accountId;
+        private readonly string templateId;
         public string PresentAddress { get; set; }
         public string Upn { get; set; }
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
         private readonly LingkConfig _lingkConfig;
+        private readonly string AccessToken;
         public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
             _logger = logger;
             _lingkConfig = lingkConfig.Value;
+            accountId = _lingkConfig.DocusignCrd.Account;
+            templateId = _lingkConfig.Envelopes[0].Template;
+            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
         }
 
         public void OnGet()
         {
-            var name = GetClaimsByType("name");
+            var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
             Url = CreateURL(emailAddress, name, emailAddress, name);
         }
@@ -55,8 +60,7 @@ namespace Lingk_SAML_Example.Pages
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
         {
-            var accountId = _lingkConfig.Envelopes[0].Account;
-            var templateId = _lingkConfig.Envelopes[0].Template;
+
             var lingkEnvelopFilePath = AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json";
             var envResp = LingkFile.CheckEnvelopExists(lingkEnvelopFilePath,
               new LingkEnvelop
@@ -70,28 +74,13 @@ namespace Lingk_SAML_Example.Pages
             }
             string existingEnvelopeId = null;
             var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
-            var accessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
-            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + accessToken);
+            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
 
             var envelopeId = existingEnvelopeId;
             var envelopesApi = new EnvelopesApi(apiClient);
             if (envelopeId == null)
             {
-                List<Text> textTabs = new List<Text>();
-                for (int i = 0; i < _lingkConfig.Envelopes[0].Tabs.Length; i++)
-                {
-                    textTabs.Add(new Text
-                    {
-                        TabLabel = _lingkConfig.Envelopes[0].Tabs[i].Id,
-                        Value = GetClaimsByType(_lingkConfig.Envelopes[0].Tabs[i].SourceDataField)
-                    });
-                };
-
-
-                Tabs tabs = new Tabs
-                {
-                    TextTabs = textTabs,
-                };
+                Tabs tabs = GetValidTabs();
 
                 TemplateRole signer = new TemplateRole
                 {
@@ -142,6 +131,53 @@ namespace Lingk_SAML_Example.Pages
                  templateId = templateId
              });
             return redirectUrl;
+        }
+        //TODO: need to add try catch
+        public Tabs GetValidTabs()
+        {
+            Tabs tabs = new Tabs();
+            var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
+            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
+            var templateApi = new TemplatesApi(apiClient);
+            Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, "1").Result;
+
+            var validTabs = results.GetType()
+                            .GetProperties() //get all properties on object
+                            .Select(pi => pi.GetValue(results))
+                            .Where(value => value != null).ToList(); //get value for the propery
+            Dictionary<Type, int> typeDict = new Dictionary<Type, int>
+            {
+                {typeof(List<Text>),0}
+            };
+
+            validTabs.ForEach((tab) =>
+            {
+                switch (typeDict[tab.GetType()])
+                {
+                    case 0:
+                        List<Text> textTabs = new List<Text>();
+                        List<Text> docusignTabs = tab as List<Text>;
+                        docusignTabs.ForEach((docTextTab) =>
+                       {
+                           var foundTab = _lingkConfig.Envelopes[0].Tabs.FirstOrDefault((tabsInYaml) =>
+                            {
+                                return tabsInYaml.Id == docTextTab.TabLabel;
+                            });
+                           textTabs.Add(new Text
+                           {
+                               TabLabel = foundTab.Id,
+                               Value = GetClaimsByType(foundTab.SourceDataField)
+                           });
+
+                       });
+                        tabs.TextTabs = textTabs;
+                        break;
+                    default:
+                        break;
+                }
+
+            });
+            return tabs;
         }
     }
 }
