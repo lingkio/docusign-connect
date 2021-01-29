@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 using System.Net.Http;
 using DocuSign.eSign.Client;
 using Lingk_SAML_Example.Utils;
-
+using System.IO;
 namespace Lingk_SAML_Example.Pages
 {
     [Authorize]
@@ -32,7 +32,6 @@ namespace Lingk_SAML_Example.Pages
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
         private readonly LingkConfig _lingkConfig;
-        private const string accessToken = "eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQoAAAABAAUABwAAEgiWS8PYSAgAAFIrpI7D2EgCAOw1EzREnWlDg32c-YTRAT0VAAEAAAAYAAEAAAAFAAAADQAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0IgAkAAAANDBkYzU2NGUtNTlmOC00MGU1LThjNzMtM2Q5NTQ4N2QyODI0MACAcNdISsPYSDcAauD9G-Z56kiYXQjsWzua6A.aKgLqL1i8PeyP_15JtUMMsnHcFoBy3Yvwbzl22k4fSbgmMxl47SOcWGZ6Pu1XqXTfsFhA9WixDYBBi5LzaLvUF5UMztgCUybByNMmfesqBqpzmmHaevH5geeMc8qJkbVY0gNebjvcVWwE9EeUIzJ1KH9i_uNq4uGPlQUtzRphRgjWrcW8nZBeV_Xw7AOVkgZmnAexz_j_oyN6FmFHKVLiP7n1YyD6yHLBcpedHNej-yEwM6kHRm_qfNOWx9b4pY1qDiN3lKT7hTVSnwq5tqoCBDyzbKn0fLG8Ofd_FN92kvL8L7odoTvgRALb3EKgSxEr-6mEGzYd-OWFp3OSS6M8A";
         public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
             _logger = logger;
@@ -45,6 +44,7 @@ namespace Lingk_SAML_Example.Pages
             var emailAddress = GetClaimsByType("emailaddress");
             Url = CreateURL(emailAddress, name, emailAddress, name);
         }
+
         public string GetClaimsByType(string claimType)
         {
             return User.Claims.FirstOrDefault((claim) =>
@@ -70,6 +70,7 @@ namespace Lingk_SAML_Example.Pages
             }
             string existingEnvelopeId = null;
             var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
+            var accessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + accessToken);
 
             var envelopeId = existingEnvelopeId;
@@ -121,7 +122,6 @@ namespace Lingk_SAML_Example.Pages
                 EnvelopeSummary results = envelopesApi.CreateEnvelope(accountId, envelopeAttributes);
                 envelopeId = results.EnvelopeId;
             };
-
 
             RecipientViewRequest viewRequest = new RecipientViewRequest();
             viewRequest.ReturnUrl = "https://localhost:3002?state=123";

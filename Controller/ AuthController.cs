@@ -42,7 +42,6 @@ namespace Lingk_SAML_Example.Controllers
         public IActionResult SamlRegistration()
         {
             var apiClient = new HttpClient();
-            // var authCrd = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Auth");
             var nvc = new List<KeyValuePair<string, string>>();
             nvc.Add(new KeyValuePair<string, string>("client_id", _lingkConfig.LingkProject.ClientId));
             nvc.Add(new KeyValuePair<string, string>("client_secret", _lingkConfig.LingkProject.ClientSecret));

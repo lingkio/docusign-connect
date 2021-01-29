@@ -24,7 +24,7 @@ namespace Lingk_SAML_Example.Utils
             // De-serialize to object or create new list
             var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelop>>(jsonData) ?? new List<LingkEnvelop>();
 
-            // Add any new employees
+            // Add any new envelope
             envelopeList.Add(envelope);
 
             // Update json data string

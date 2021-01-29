@@ -16,6 +16,9 @@ namespace Lingk_SAML_Example.Common
 
         [JsonProperty("envelopes")]
         public Envelope[] Envelopes { get; set; }
+
+         [JsonProperty("docusignCrd")]
+        public DocusignCrd DocusignCrd { get; set; }
     }
 
     public partial class Authn
@@ -45,6 +48,11 @@ namespace Lingk_SAML_Example.Common
         public Uri ServiceAddress { get; set; }
     }
 
+    public partial class DocusignCrd
+    {
+        [JsonProperty("privateKey")]
+        public string PrivateKey { get; set; }
+    }
     public partial class Envelope
     {
         [JsonProperty("template")]
