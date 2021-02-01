@@ -155,12 +155,15 @@ namespace Lingk_SAML_Example.Pages
                             .Where(value => value != null).ToList(); //get value for the propery
             Dictionary<Type, int> typeDict = new Dictionary<Type, int>
             {
-                {typeof(List<Text>),0}
+                {typeof(List<Text>),0},
+                {typeof(List<SignHere>),1}
             };
 
             validTabs.ForEach((tab) =>
             {
-                switch (typeDict[tab.GetType()])
+                Type type = tab.GetType();
+                var key = typeDict.ContainsKey(type) ? typeDict[type] : -1;
+                switch (key)
                 {
                     case 0:
                         List<Text> textTabs = new List<Text>();
@@ -171,19 +174,33 @@ namespace Lingk_SAML_Example.Pages
                             {
                                 return tabsInYaml.Id == docTextTab.TabLabel;
                             });
-                           textTabs.Add(new Text
+                           if (foundTab != null)
                            {
-                               TabLabel = foundTab.Id,
-                               Value = GetClaimsByType(foundTab.SourceDataField)
-                           });
-
+                               textTabs.Add(new Text
+                               {
+                                   TabLabel = foundTab.Id,
+                                   Value = GetClaimsByType(foundTab.SourceDataField)
+                               });
+                           }
                        });
                         tabs.TextTabs = textTabs;
+                        break;
+                    case 1:
+                        SignHere signHere = new SignHere
+                        {
+                            AnchorString = "/sn1/",
+                            AnchorUnits = "pixels",
+                            AnchorYOffset = "10",
+                            AnchorXOffset = "20"
+                        };
+                        tabs.SignHereTabs = new List<SignHere> { signHere };
+                        break;
+                    case -1:
+                        Console.WriteLine("Tab " + type.ToString() + " is not implemented");
                         break;
                     default:
                         break;
                 }
-
             });
             return tabs;
         }
