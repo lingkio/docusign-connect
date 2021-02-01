@@ -18,6 +18,8 @@ using System.Net.Http;
 using DocuSign.eSign.Client;
 using Lingk_SAML_Example.Utils;
 using System.IO;
+using Microsoft.AspNetCore.Http;
+
 namespace Lingk_SAML_Example.Pages
 {
     [Authorize]
@@ -26,25 +28,32 @@ namespace Lingk_SAML_Example.Pages
         public string ClaimUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public string Url { get; set; }
         public string Name { get; set; }
-        private readonly string accountId;
-        private readonly string templateId;
+        private string accountId;
+        private string templateId;
         public string PresentAddress { get; set; }
         public string Upn { get; set; }
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
         private readonly LingkConfig _lingkConfig;
-        private readonly string AccessToken;
+        private Lingk_SAML_Example.Common.Envelope selectedEnvelop;
+        private string AccessToken;
         public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
             _logger = logger;
             _lingkConfig = lingkConfig.Value;
-            accountId = _lingkConfig.DocusignCrd.Account;
-            templateId = _lingkConfig.Envelopes[0].Template;
-            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
         }
 
         public void OnGet()
         {
+            var requestedTemplate = HttpContext.Session.GetString("Templatepath");
+            accountId = _lingkConfig.DocusignCrd.Account;
+            selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
+
+                env.Url.ToLower() == requestedTemplate.ToLower()
+            ).FirstOrDefault();
+            templateId = selectedEnvelop.Template;
+            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
+
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
             Url = CreateURL(emailAddress, name, emailAddress, name);
@@ -159,7 +168,7 @@ namespace Lingk_SAML_Example.Pages
                         List<Text> docusignTabs = tab as List<Text>;
                         docusignTabs.ForEach((docTextTab) =>
                        {
-                           var foundTab = _lingkConfig.Envelopes[0].Tabs.FirstOrDefault((tabsInYaml) =>
+                           var foundTab = selectedEnvelop.Tabs.FirstOrDefault((tabsInYaml) =>
                             {
                                 return tabsInYaml.Id == docTextTab.TabLabel;
                             });

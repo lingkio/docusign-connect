@@ -18,6 +18,9 @@ using Lingk_SAML_Example.Pages;
 using Lingk_SAML_Example.Common;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.Utils;
+using Microsoft.AspNetCore.Rewrite;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Lingk_SAML_Example
 {
@@ -49,8 +52,10 @@ namespace Lingk_SAML_Example
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddRazorPages();
-
+            services.AddDistributedMemoryCache();
+            services.AddSession();
             services.Configure<LingkConfig>(Configuration);
+
             services.Configure<Saml2Configuration>(saml2Configuration =>
             {
                 saml2Configuration.AllowedAudienceUris.Add(this.Configuration["authn:saml:issuerId"]);
@@ -88,11 +93,11 @@ namespace Lingk_SAML_Example
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
-
+            //enable session before MVC
+            app.UseSession();
             app.UseRouting();
             app.UseSaml2();
             app.UseAuthorization();
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapRazorPages();
@@ -100,6 +105,11 @@ namespace Lingk_SAML_Example
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
+            app.UseMiddleware<RedirecterMiddleware>();
+            var options = new RewriteOptions()
+            .AddRedirect("(.*)", "auth/login");
+
+            app.UseRewriter(options);
         }
     }
 }
