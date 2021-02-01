@@ -48,7 +48,6 @@ namespace Lingk_SAML_Example.Pages
             var requestedTemplate = HttpContext.Session.GetString("Templatepath");
             accountId = _lingkConfig.DocusignCrd.Account;
             selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
-
                 env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
             templateId = selectedEnvelop.Template;
