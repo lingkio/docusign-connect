@@ -27,6 +27,7 @@ namespace Lingk_SAML_Example.Pages
     {
         public string ClaimUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public string Url { get; set; }
+        public string ErrorMessage { get; set; }
         public string Name { get; set; }
         private string accountId;
         private string templateId;
@@ -46,10 +47,21 @@ namespace Lingk_SAML_Example.Pages
         public void OnGet()
         {
             var requestedTemplate = HttpContext.Session.GetString("Templatepath");
+            if (requestedTemplate == null)
+            {
+                ErrorMessage = "Please correct the url to create the envelop";
+                return;
+            }
             accountId = _lingkConfig.DocusignCrd.Account;
             selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
                 env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
+            if (selectedEnvelop == null)
+            {
+                ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
+                 return;
+            }
+            ErrorMessage = null;
             templateId = selectedEnvelop.Template;
             AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
 
@@ -68,7 +80,6 @@ namespace Lingk_SAML_Example.Pages
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
         {
-
             var lingkEnvelopFilePath = AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json";
             var envResp = LingkFile.CheckEnvelopExists(lingkEnvelopFilePath,
               new LingkEnvelop

@@ -46,7 +46,7 @@ namespace Lingk_SAML_Example.Utils
                 // var result = LingkHelper.LingkServicecall("/v1/@self/ps/credentials", "GET",
                 // _lingkConfig.LingkProject.ClientId, _lingkConfig.LingkProject.ClientSecret);
 
-                //TODO: will get from above api call
+                //TODO: jwt will get from above api call
                 var jwtGrant = new JwtGrant
                 {
                     grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
@@ -62,7 +62,7 @@ namespace Lingk_SAML_Example.Utils
                 var authToken = JsonConvert.DeserializeObject<Token>(responseData.Content);
                 if (authToken.error != null)
                 {
-                    throw new Exception(authToken.error_description + " Not able to generate access_token from jwt ");
+                    throw new Exception(authToken.error_description + " not able to generate access_token from jwt ");
                 }
                 AccessToken = authToken.access_token;
                 ExpireIn = DateTime.Now.AddSeconds(authToken.expires_in);

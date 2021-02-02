@@ -71,6 +71,10 @@ namespace Lingk_SAML_Example.Controllers
         [Route("Login")]
         public IActionResult Login(string returnUrl = null)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return Redirect("~/Docusign");
+            }
             var binding = new Saml2RedirectBinding();
             binding.SetRelayStateQuery(new Dictionary<string, string> { { relayStateReturnUrl, returnUrl ?? Url.Content("~/") } });
 

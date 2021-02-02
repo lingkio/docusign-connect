@@ -6,9 +6,19 @@
 
 <div class="row">
     <div class="col-md-12">
-        <h2>DocuSign url : </h2>
-        <p>
-            @Model.Url
-        </p>
+        @if (@Model.ErrorMessage == null)
+        {
+            <h2>DocuSign url : </h2>
+            <p>
+                @Model.Url
+            </p>
+        }
+        else
+        {
+            <h2 style="color: red;">Error: </h2>
+            <p style="color: red;">
+                @Model.ErrorMessage
+            </p>
+        }
     </div>
 </div>
