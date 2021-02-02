@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using Newtonsoft.Json.Converters;
 
-namespace Lingk_SAML_Example.Common
+namespace Lingk_SAML_Example.DTO
 {
     public partial class LingkConfig
     {

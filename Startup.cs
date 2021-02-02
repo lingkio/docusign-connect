@@ -15,12 +15,14 @@ using Lingk_SAML_Example.Controllers;
 using YamlDotNet.Serialization;
 using System.IO;
 using Lingk_SAML_Example.Pages;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.DTO;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.Utils;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Mvc;
+using RestSharp;
+using Newtonsoft.Json;
 
 namespace Lingk_SAML_Example
 {
@@ -110,6 +112,7 @@ namespace Lingk_SAML_Example
             .AddRedirect("(.*)", "auth/login");
 
             app.UseRewriter(options);
-        }
+        }       
     }
+
 }

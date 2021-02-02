@@ -12,7 +12,7 @@ using DocuSign.eSign.Model;
 using System.Text;
 using System.Web;
 using System.Net.Http.Headers;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.DTO;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
 using DocuSign.eSign.Client;
@@ -35,7 +35,7 @@ namespace Lingk_SAML_Example.Pages
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
         private readonly LingkConfig _lingkConfig;
-        private Lingk_SAML_Example.Common.Envelope selectedEnvelop;
+        private Lingk_SAML_Example.DTO.Envelope selectedEnvelop;
         private string AccessToken;
         public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
