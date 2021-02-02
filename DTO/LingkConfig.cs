@@ -78,6 +78,14 @@ namespace Lingk_SAML_Example.DTO
 
         [JsonProperty("clientSecret")]
         public string ClientSecret { get; set; }
+
+        [JsonProperty("environmentKey")]
+        public string EnvironmentKey { get; set; }
+
+        [JsonProperty("entrypoint")]
+        public string Entrypoint { get; set; }
+
+
     }
 
     public partial class LingkEnvelop

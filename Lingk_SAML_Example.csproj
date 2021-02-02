@@ -8,6 +8,9 @@
   <None Update="example-docusign.yaml">
   <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </None>
+    <None Update="metadata.xml">
+  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  </None>
     <PackageReference Include="DocuSign.Click" Version="1.0.0-alpha" />
     <PackageReference Include="DocuSign.eSign.dll" Version="5.2.0" />
     <PackageReference Include="ITfoxtec.Identity.Saml2" Version="4.0.8" />

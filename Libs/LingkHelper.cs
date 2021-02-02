@@ -5,12 +5,12 @@ using System.Net.Http;
 using System.Text;
 using System.Web;
 using System.Threading.Tasks;
+using Lingk_SAML_Example.DTO;
 
 namespace Lingk_SAML_Example.Utils
 {
     public class LingkHelper
     {
-        static String entrypoint = "http://www.lingkapis.com";
         private static readonly Encoding encoding = Encoding.UTF8;
         private static string CreateSignature(string message, string secret)
         {
@@ -25,11 +25,12 @@ namespace Lingk_SAML_Example.Utils
             }
         }
 
-        public static async Task<string> LingkServicecall(String service, String method,
-         string apikey, string secret)
+        public static async Task<string> LingkServicecall(LingkProject lingkProject)
         {
+            var service = "/v1/@self/" + lingkProject.EnvironmentKey + "/credentials/DocuSign";
+            var method = "GET";
             String requestDate;
-            UriBuilder uri = new UriBuilder(entrypoint + service);
+            UriBuilder uri = new UriBuilder(lingkProject.Entrypoint + service);
             Console.WriteLine(uri);
             requestDate = DateTime.UtcNow.ToString("R");
 
@@ -37,10 +38,10 @@ namespace Lingk_SAML_Example.Utils
             string fullMessage = "date: " + requestDate + "\n(request-target): " + method.ToLower() + " " + service;
             using (var client = new HttpClient(handler))
             {
-                string hashString = CreateSignature(fullMessage, secret);
-                String authHeader = "Signature keyId=\"" + apikey + "\",headers=\"date (request-target)\",algorithm=\"hmac-sha1\",signature=\"" + WebUtility.UrlEncode(hashString) + "\"";
+                string hashString = CreateSignature(fullMessage, lingkProject.ClientSecret);
+                String authHeader = "Signature keyId=\"" + lingkProject.ClientId + "\",headers=\"date (request-target)\",algorithm=\"hmac-sha1\",signature=\"" + WebUtility.UrlEncode(hashString) + "\"";
 
-                client.BaseAddress = new System.Uri(entrypoint);
+                client.BaseAddress = new System.Uri(lingkProject.Entrypoint);
                 client.DefaultRequestHeaders.Add("Date", requestDate);
                 client.DefaultRequestHeaders.Add("Authorization", authHeader);
                 var resp2 = await client.GetAsync(service);

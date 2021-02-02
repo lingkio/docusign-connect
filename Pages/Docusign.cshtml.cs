@@ -60,7 +60,7 @@ namespace Lingk_SAML_Example.Pages
             }
             ErrorMessage = null;
             templateId = selectedEnvelop.Template;
-            AccessToken = DocusignHelper.GetAccessToken();
+            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.LingkProject);
 
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");

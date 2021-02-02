@@ -11,19 +11,18 @@ namespace Lingk_SAML_Example.Utils
     {
         public static DateTime? ExpireIn { get; set; }
         private static string AccessToken;
-        public static string GetAccessToken()
+        public static string GetAccessToken(LingkProject lingkProject)
         {
             if (ExpireIn == null || DateTime.Now.Subtract(TimeSpan.FromMinutes(3)) > ExpireIn.Value)
             {
-                //TODO: need to make the call this will remove the blow hardcoded value
-                // var result = LingkHelper.LingkServicecall("/v1/@self/ps/credentials", "GET",
-                // _lingkConfig.LingkProject.ClientId, _lingkConfig.LingkProject.ClientSecret);
+                var resp = LingkHelper.LingkServicecall(lingkProject);
 
+                var lingkDocusign = JsonConvert.DeserializeObject<LingkDocusign>(resp.Result);
                 //TODO: jwt will get from above api call
                 var jwtGrant = new JwtGrant
                 {
                     grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
-                    assertion = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhY2NvdW50LWQuZG9jdXNpZ24uY29tIiwiZXhwIjoxNjEyMjQ5NTYzLCJpYXQiOjE2MTIyNDkyNjMsImlzcyI6ImYyNDk3NzRjLTQ3MzEtNDhmNy05ZmJkLTBkNzlmMjQxZmNiMiIsInNjb3BlIjoic2lnbmF0dXJlIGltcGVyc29uYXRpb24iLCJzdWIiOiI5NGYwMzk3NC0yZTlmLTRiNDQtOTY1Mi1kMzY4MWE5ZWExNTAifQ.dMTpXtprxPOZN2FZUo4saG0PK0BL3nSTQUOhsB3ZrQ1HkL2Lxpzed2yVi3V7ZKnycoRx9mlownI5d-EOHNHXSkRhGnbxr-d6ZSeK4F9ciQUoEORRkUSb-rtsBTET95Cle2MnxZSjuTCmeul-HgGYqaI614ABBWItnflFtmzXEu3Hog5TjNDVnGqODqGNgAcIl-vJR8FeF9dT0sJharjRDOg7xGk5ohXxF4jsg1VkkR3wBNU4lBhXFhYBImYq58or38kQUDL_Kqi5gSs4wKK1bbbqgWDbiFd5dOR_9zcg6eWqHi8VXE7xCTI2slo9hJioxO45gFYNXljDtRzVvYquyA"
+                    assertion = lingkDocusign.credentialsJson.JWT
                 };
 
                 var client = new RestClient(LingkConst.DocusignAuthUrl);
