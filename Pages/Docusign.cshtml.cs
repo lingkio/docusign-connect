@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 using DocuSign.eSign.Api;
 using DocuSign.eSign.Model;
-using System.Text;
-using System.Web;
-using System.Net.Http.Headers;
 using Lingk_SAML_Example.DTO;
 using Microsoft.Extensions.Options;
 using System.Net.Http;
@@ -19,13 +14,14 @@ using DocuSign.eSign.Client;
 using Lingk_SAML_Example.Utils;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using Lingk_SAML_Example.LingkFileSystem;
+using Lingk_SAML_Example.Common;
 
 namespace Lingk_SAML_Example.Pages
 {
     [Authorize]
     public class DocusignModel : PageModel
     {
-        public string ClaimUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public string Url { get; set; }
         public string ErrorMessage { get; set; }
         public string Name { get; set; }
@@ -46,24 +42,25 @@ namespace Lingk_SAML_Example.Pages
 
         public void OnGet()
         {
-            var requestedTemplate = HttpContext.Session.GetString("Templatepath");
+            var requestedTemplate = HttpContext.Session.GetString(LingkConst.SessionKey);
             if (requestedTemplate == null)
             {
                 ErrorMessage = "Please correct the url to create the envelop";
                 return;
             }
-            accountId = _lingkConfig.DocusignCrd.Account;
+            //TODO: This need to be takem from lingk api call
+            accountId = "aecbc359-1111-4e81-9823-1a3d08d9a221";
             selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
                 env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
             if (selectedEnvelop == null)
             {
                 ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
-                 return;
+                return;
             }
             ErrorMessage = null;
             templateId = selectedEnvelop.Template;
-            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.DocusignCrd.PrivateKey);
+            AccessToken = DocusignHelper.GetAccessToken();
 
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
@@ -74,13 +71,13 @@ namespace Lingk_SAML_Example.Pages
         {
             return User.Claims.FirstOrDefault((claim) =>
             {
-                return claim.Type == ClaimUrl + claimType;
+                return claim.Type == LingkConst.ClaimsUrl + claimType;
             }).Value;
         }
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
         {
-            var lingkEnvelopFilePath = AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json";
+            var lingkEnvelopFilePath = LingkConst.LingkFileSystemPath;
             var envResp = LingkFile.CheckEnvelopExists(lingkEnvelopFilePath,
               new LingkEnvelop
               {
@@ -92,7 +89,7 @@ namespace Lingk_SAML_Example.Pages
                 return envResp.recipientUrl;
             }
             string existingEnvelopeId = null;
-            var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
+            var apiClient = new ApiClient(LingkConst.DocusignDemoUrl);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
 
             var envelopeId = existingEnvelopeId;
@@ -132,7 +129,7 @@ namespace Lingk_SAML_Example.Pages
             };
 
             RecipientViewRequest viewRequest = new RecipientViewRequest();
-            viewRequest.ReturnUrl = "https://localhost:3002?state=123";
+            viewRequest.ReturnUrl = LingkConst.DocusignReturnUrl;
             viewRequest.AuthenticationMethod = "none";
             viewRequest.Email = signerEmail;
             viewRequest.UserName = signerName;
@@ -151,11 +148,11 @@ namespace Lingk_SAML_Example.Pages
              });
             return redirectUrl;
         }
-        //TODO: need to add try catch
+        //TODO: need to add try catch and seprate out the logic
         public Tabs GetValidTabs()
         {
             Tabs tabs = new Tabs();
-            var apiClient = new ApiClient("https://demo.docusign.net/restapi/");
+            var apiClient = new ApiClient(LingkConst.DocusignDemoUrl);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
             var templateApi = new TemplatesApi(apiClient);
             Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, "1").Result;

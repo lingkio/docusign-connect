@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Security.Claims;
 using Lingk_SAML_Example.DTO;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 
-namespace Lingk_SAML_Example.Utils
+namespace Lingk_SAML_Example.LingkFileSystem
 {
     public static class LingkFile
     {

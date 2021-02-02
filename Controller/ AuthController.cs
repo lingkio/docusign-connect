@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Lingk_SAML_Example.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Authentication;
 using Newtonsoft.Json;
@@ -18,6 +17,7 @@ using Lingk_SAML_Example.Pages;
 using System.ServiceModel.Security;
 using System.Security.Cryptography.X509Certificates;
 using Lingk_SAML_Example.DTO;
+using Lingk_SAML_Example.Libs;
 
 namespace Lingk_SAML_Example.Controllers
 {

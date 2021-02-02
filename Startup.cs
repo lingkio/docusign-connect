@@ -19,10 +19,9 @@ using Lingk_SAML_Example.DTO;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.Utils;
 using Microsoft.AspNetCore.Rewrite;
-using Microsoft.Extensions.Options;
-using Microsoft.AspNetCore.Mvc;
-using RestSharp;
-using Newtonsoft.Json;
+using Lingk_SAML_Example.Middleware;
+using Lingk_SAML_Example.LingkFileSystem;
+using Lingk_SAML_Example.Common;
 
 namespace Lingk_SAML_Example
 {
@@ -31,7 +30,7 @@ namespace Lingk_SAML_Example
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            var reader = new StreamReader("./example-docusign.yaml");
+            var reader = new StreamReader(LingkConst.YamlConfigPath);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(reader);
 
@@ -40,12 +39,11 @@ namespace Lingk_SAML_Example
                 .Build();
 
             var json = serializer.Serialize(yamlObject);
-            var settingPath = AppDomain.CurrentDomain.BaseDirectory + "./setting.json";
-            LingkFile.Create(settingPath, json);
-            var builder = new ConfigurationBuilder().AddJsonFile(settingPath);
+            LingkFile.Create(LingkConst.TempSettingsPath, json);
+            var builder = new ConfigurationBuilder().AddJsonFile(LingkConst.TempSettingsPath);
             this.Configuration = builder.Build();
-            File.Delete(settingPath);
-            LingkFile.Create(AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelop.json", "");
+            File.Delete(LingkConst.TempSettingsPath);
+            LingkFile.Create(LingkConst.LingkFileSystemPath, "");
         }
 
         public IConfiguration Configuration { get; }
@@ -63,7 +61,6 @@ namespace Lingk_SAML_Example
                 saml2Configuration.AllowedAudienceUris.Add(this.Configuration["authn:saml:issuerId"]);
 
                 var entityDescriptor = new EntityDescriptor();
-                //entityDescriptor.ReadIdPSsoDescriptorFromFile(:oasis:names:tc:SAML:2.0:bindings:HTTP-POST' Location='https://lingk-int.auth0.com/samlp/ZzbpkpYIE0OXMfnOvm3yePjdrW3E7nrn'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='E-Mail Address'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Given Name'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Name'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Surname'/><Attribute xmlns='urn:oasis:names:tc:SAML:2.0:assertion' Name='http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier' NameFormat='urn:oasis:names:tc:SAML:2.0:attrname-format:uri' FriendlyName='Name ID'/></IDPSSODescriptor></EntityDescriptor>");
                 entityDescriptor.ReadIdPSsoDescriptorFromFile(this.Configuration["authn:saml:metadataLocal"]);
                 if (entityDescriptor.IdPSsoDescriptor != null)
                 {
@@ -112,7 +109,7 @@ namespace Lingk_SAML_Example
             .AddRedirect("(.*)", "auth/login");
 
             app.UseRewriter(options);
-        }       
+        }
     }
 
 }
