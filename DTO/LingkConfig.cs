@@ -26,15 +26,6 @@ namespace Lingk_SAML_Example.DTO
 
     public partial class Saml
     {
-        [JsonProperty("keyStore")]
-        public string KeyStore { get; set; }
-
-        [JsonProperty("keyStoreAliasName")]
-        public string KeyStoreAliasName { get; set; }
-
-        [JsonProperty("keyStorePassword")]
-        public string KeyStorePassword { get; set; }
-
         [JsonProperty("metadataLocal")]
         public string MetadataLocal { get; set; }
 
@@ -43,6 +34,10 @@ namespace Lingk_SAML_Example.DTO
 
         [JsonProperty("serviceAddress")]
         public Uri ServiceAddress { get; set; }
+
+        [JsonProperty("signatureDigest")]
+        public string SignatureDigest { get; set; }
+
     }
     public partial class Envelope
     {
@@ -57,6 +52,10 @@ namespace Lingk_SAML_Example.DTO
 
         [JsonProperty("tabs")]
         public Tab[] Tabs { get; set; }
+
+        [JsonProperty("docusignReturnUrl")]
+        public string DocusignReturnUrl { get; set; }
+
     }
 
     public partial class Tab
@@ -67,8 +66,8 @@ namespace Lingk_SAML_Example.DTO
         [JsonProperty("sourceDataField")]
         public string SourceDataField { get; set; }
 
-        [JsonProperty("type")]
-        public string Type { get; set; }
+        [JsonProperty("provider")]
+        public string Provider { get; set; }
     }
 
     public partial class LingkProject
@@ -84,8 +83,6 @@ namespace Lingk_SAML_Example.DTO
 
         [JsonProperty("entrypoint")]
         public string Entrypoint { get; set; }
-
-
     }
 
     public partial class LingkEnvelop

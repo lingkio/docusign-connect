@@ -1,6 +1,6 @@
 
 using System;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.Constants;
 using Lingk_SAML_Example.DTO;
 using Newtonsoft.Json;
 using RestSharp;
@@ -10,22 +10,22 @@ namespace Lingk_SAML_Example.Utils
     public class DocusignHelper
     {
         public static DateTime? ExpireIn { get; set; }
-        private static string AccessToken;
-        public static string GetAccessToken(LingkProject lingkProject)
+        private static LingkCredentials lingkCredentials;
+        public static LingkCredentials GetAccessToken(LingkProject lingkProject)
         {
-            if (ExpireIn == null || DateTime.Now.Subtract(TimeSpan.FromMinutes(3)) > ExpireIn.Value)
+            if (lingkCredentials == null || ExpireIn == null || DateTime.Now.Subtract(TimeSpan.FromMinutes(3)) > ExpireIn.Value)
             {
                 var resp = LingkHelper.LingkServicecall(lingkProject);
 
                 var lingkDocusign = JsonConvert.DeserializeObject<LingkDocusign>(resp.Result);
-                //TODO: jwt will get from above api call
+
                 var jwtGrant = new JwtGrant
                 {
-                    grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                    grant_type = LingkConst.DocuSignGrantType,
                     assertion = lingkDocusign.credentialsJson.JWT
                 };
 
-                var client = new RestClient(LingkConst.DocusignAuthUrl);
+                var client = new RestClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoAuthUrl : LingkConst.DocusignProdAuthUrl);
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("content-type", "application/json");
                 request.AddHeader("cache-control", "no-cache");
@@ -36,11 +36,14 @@ namespace Lingk_SAML_Example.Utils
                 {
                     throw new Exception(authToken.error_description + " not able to generate access_token from jwt ");
                 }
-                AccessToken = authToken.access_token;
                 ExpireIn = DateTime.Now.AddSeconds(authToken.expires_in);
-                return AccessToken;
+                lingkCredentials = new LingkCredentials
+                {
+                    credentialsJson = lingkDocusign.credentialsJson,
+                    docuSignToken = authToken
+                };
             }
-            return AccessToken;
+            return lingkCredentials;
 
         }
 

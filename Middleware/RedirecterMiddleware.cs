@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.Constants;
 using Microsoft.AspNetCore.Http;
 namespace Lingk_SAML_Example.Middleware
 {

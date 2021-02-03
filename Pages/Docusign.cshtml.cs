@@ -15,7 +15,7 @@ using Lingk_SAML_Example.Utils;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.LingkFileSystem;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.Constants;
 
 namespace Lingk_SAML_Example.Pages
 {
@@ -33,7 +33,7 @@ namespace Lingk_SAML_Example.Pages
         private readonly ILogger<DocusignModel> _logger;
         private readonly LingkConfig _lingkConfig;
         private Lingk_SAML_Example.DTO.Envelope selectedEnvelop;
-        private string AccessToken;
+        private LingkCredentials lingkCredentials;
         public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
         {
             _logger = logger;
@@ -49,7 +49,7 @@ namespace Lingk_SAML_Example.Pages
                 return;
             }
             //TODO: This need to be takem from lingk api call
-            accountId = "aecbc359-1111-4e81-9823-1a3d08d9a221";
+            accountId = lingkCredentials.credentialsJson.accountId;
             selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
                 env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
@@ -60,7 +60,7 @@ namespace Lingk_SAML_Example.Pages
             }
             ErrorMessage = null;
             templateId = selectedEnvelop.Template;
-            AccessToken = DocusignHelper.GetAccessToken(_lingkConfig.LingkProject);
+            this.lingkCredentials = DocusignHelper.GetAccessToken(_lingkConfig.LingkProject);
 
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
@@ -89,8 +89,8 @@ namespace Lingk_SAML_Example.Pages
                 return envResp.recipientUrl;
             }
             string existingEnvelopeId = null;
-            var apiClient = new ApiClient(LingkConst.DocusignDemoUrl);
-            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
+            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox? LingkConst.DocusignDemoUrl: LingkConst.DocusignProdUrl);
+            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
 
             var envelopeId = existingEnvelopeId;
             var envelopesApi = new EnvelopesApi(apiClient);
@@ -129,7 +129,7 @@ namespace Lingk_SAML_Example.Pages
             };
 
             RecipientViewRequest viewRequest = new RecipientViewRequest();
-            viewRequest.ReturnUrl = LingkConst.DocusignReturnUrl;
+            viewRequest.ReturnUrl = selectedEnvelop.DocusignReturnUrl;
             viewRequest.AuthenticationMethod = "none";
             viewRequest.Email = signerEmail;
             viewRequest.UserName = signerName;
@@ -152,8 +152,8 @@ namespace Lingk_SAML_Example.Pages
         public Tabs GetValidTabs()
         {
             Tabs tabs = new Tabs();
-            var apiClient = new ApiClient(LingkConst.DocusignDemoUrl);
-            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + AccessToken);
+            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox? LingkConst.DocusignDemoUrl: LingkConst.DocusignProdUrl);
+            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
             var templateApi = new TemplatesApi(apiClient);
             Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, "1").Result;
 

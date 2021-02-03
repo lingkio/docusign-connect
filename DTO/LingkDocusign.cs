@@ -7,6 +7,7 @@ namespace Lingk_SAML_Example.DTO
         public bool isSandbox { get; set; }
         public string name { get; set; }
         public string userName { get; set; }
+        public string accountId { get; set; }
     }
 
     public class LingkDocusign
@@ -17,5 +18,12 @@ namespace Lingk_SAML_Example.DTO
         public string providerLabel { get; set; }
         public string key { get; set; }
         public bool api_accessible { get; set; }
+    }
+
+    public class LingkCredentials
+    {
+        public CredentialsJson credentialsJson { get; set; }
+
+        public Token docuSignToken { get; set; }
     }
 }
