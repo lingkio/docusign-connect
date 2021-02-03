@@ -14,6 +14,9 @@ namespace Lingk_SAML_Example.DTO
         [JsonProperty("lingkProject")]
         public LingkProject LingkProject { get; set; }
 
+        [JsonProperty("providers")]
+        public Provider[] Providers { get; set; }
+
         [JsonProperty("envelopes")]
         public Envelope[] Envelopes { get; set; }
     }
@@ -44,11 +47,14 @@ namespace Lingk_SAML_Example.DTO
         [JsonProperty("template")]
         public string Template { get; set; }
 
+        [JsonProperty("account")]
+        public string Account { get; set; }
+
         [JsonProperty("url")]
         public string Url { get; set; }
 
-        [JsonProperty("security")]
-        public string Security { get; set; }
+        [JsonProperty("linkFromProviderToSaml")]
+        public string LinkFromProviderToSaml { get; set; }
 
         [JsonProperty("tabs")]
         public Tab[] Tabs { get; set; }
@@ -68,6 +74,11 @@ namespace Lingk_SAML_Example.DTO
 
         [JsonProperty("provider")]
         public string Provider { get; set; }
+
+
+        [JsonProperty("table")]
+        public string Table { get; set; }
+
     }
 
     public partial class LingkProject

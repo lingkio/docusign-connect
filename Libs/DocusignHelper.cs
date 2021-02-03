@@ -25,7 +25,7 @@ namespace Lingk_SAML_Example.Utils
                     assertion = lingkDocusign.credentialsJson.JWT
                 };
 
-                var client = new RestClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoAuthUrl : LingkConst.DocusignProdAuthUrl);
+                var client = new RestClient(lingkDocusign.credentialsJson.isSandbox ? LingkConst.DocusignDemoAuthUrl : LingkConst.DocusignProdAuthUrl);
                 var request = new RestRequest(Method.POST);
                 request.AddHeader("content-type", "application/json");
                 request.AddHeader("cache-control", "no-cache");

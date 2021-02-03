@@ -3,7 +3,6 @@ using System.Security.Cryptography;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Web;
 using System.Threading.Tasks;
 using Lingk_SAML_Example.DTO;
 
@@ -27,7 +26,7 @@ namespace Lingk_SAML_Example.Utils
 
         public static async Task<string> LingkServicecall(LingkProject lingkProject)
         {
-            var service = "/v1/@self/" + lingkProject.EnvironmentKey + "/credentials/DocuSign";
+            var service = "/v1/@self/" + lingkProject.EnvironmentKey.ToLower() + "/credentials/docusign";
             var method = "GET";
             String requestDate;
             UriBuilder uri = new UriBuilder(lingkProject.Entrypoint + service);

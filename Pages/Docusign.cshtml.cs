@@ -16,6 +16,7 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.LingkFileSystem;
 using Lingk_SAML_Example.Constants;
+using Lingk_SAML_Example.Connecters;
 
 namespace Lingk_SAML_Example.Pages
 {
@@ -45,11 +46,9 @@ namespace Lingk_SAML_Example.Pages
             var requestedTemplate = HttpContext.Session.GetString(LingkConst.SessionKey);
             if (requestedTemplate == null)
             {
-                ErrorMessage = "Please correct the url to create the envelop";
+                ErrorMessage = "Please correct the url to create the envelop eg. /adddrop";
                 return;
             }
-            //TODO: This need to be takem from lingk api call
-            accountId = lingkCredentials.credentialsJson.accountId;
             selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
                 env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
@@ -58,21 +57,40 @@ namespace Lingk_SAML_Example.Pages
                 ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
                 return;
             }
-            ErrorMessage = null;
-            templateId = selectedEnvelop.Template;
             this.lingkCredentials = DocusignHelper.GetAccessToken(_lingkConfig.LingkProject);
+            if (!this.lingkCredentials.credentialsJson.accountId.Contains(selectedEnvelop.Account))
+            {
+                ErrorMessage = "You don't have access for the account " + selectedEnvelop.Account;
+                return;
+            }
+            ErrorMessage = null;
+            accountId = selectedEnvelop.Account;
+            templateId = selectedEnvelop.Template;
 
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
             Url = CreateURL(emailAddress, name, emailAddress, name);
         }
 
-        public string GetClaimsByType(string claimType)
+        public string GetClaimsByType(string claimType, string type = null, string table = null)
         {
-            return User.Claims.FirstOrDefault((claim) =>
+            if (String.IsNullOrEmpty(type) || type.ToLower() == "saml")
             {
-                return claim.Type == LingkConst.ClaimsUrl + claimType;
-            }).Value;
+                return User.Claims.FirstOrDefault((claim) =>
+                          {
+                              return claim.Type == LingkConst.ClaimsUrl + claimType;
+                          }).Value;
+            }
+            if (type.ToLower() == "postgres")
+            {
+                var data = selectedEnvelop.LinkFromProviderToSaml.Split("|");
+                var identifier = GetClaimsByType(data[1]);
+                Postgres con = new Postgres();
+                var provider = _lingkConfig.Providers.Where((prov) => prov.Name.ToLower() == type.ToLower()).FirstOrDefault();
+                return con.ExecuteQuery(provider, "Select " + claimType + " From " + table + " Where " +
+                 data[0] + "='" + identifier.Split("|")[1] + "'");
+            }
+            return "";
         }
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
@@ -89,7 +107,7 @@ namespace Lingk_SAML_Example.Pages
                 return envResp.recipientUrl;
             }
             string existingEnvelopeId = null;
-            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox? LingkConst.DocusignDemoUrl: LingkConst.DocusignProdUrl);
+            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
 
             var envelopeId = existingEnvelopeId;
@@ -152,7 +170,7 @@ namespace Lingk_SAML_Example.Pages
         public Tabs GetValidTabs()
         {
             Tabs tabs = new Tabs();
-            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox? LingkConst.DocusignDemoUrl: LingkConst.DocusignProdUrl);
+            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
             var templateApi = new TemplatesApi(apiClient);
             Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, "1").Result;
@@ -187,13 +205,14 @@ namespace Lingk_SAML_Example.Pages
                                textTabs.Add(new Text
                                {
                                    TabLabel = foundTab.Id,
-                                   Value = GetClaimsByType(foundTab.SourceDataField)
+                                   Value = GetClaimsByType(foundTab.SourceDataField, foundTab.Provider, foundTab.Table)
                                });
                            }
                        });
                         tabs.TextTabs = textTabs;
                         break;
                     case 1:
+                        //TODO: need to verify the below login
                         SignHere signHere = new SignHere
                         {
                             AnchorString = "/sn1/",

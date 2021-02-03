@@ -1,13 +1,15 @@
+using System.Collections.Generic;
+
 namespace Lingk_SAML_Example.DTO
 {
     public class CredentialsJson
     {
         public string JWT { get; set; }
+        public List<string> accountId { get; set; } 
         public string consumerKey { get; set; }
         public bool isSandbox { get; set; }
         public string name { get; set; }
         public string userName { get; set; }
-        public string accountId { get; set; }
     }
 
     public class LingkDocusign

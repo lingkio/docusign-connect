@@ -21,7 +21,7 @@ using Lingk_SAML_Example.Utils;
 using Microsoft.AspNetCore.Rewrite;
 using Lingk_SAML_Example.Middleware;
 using Lingk_SAML_Example.LingkFileSystem;
-using Lingk_SAML_Example.Common;
+using Lingk_SAML_Example.Constants;
 
 namespace Lingk_SAML_Example
 {
