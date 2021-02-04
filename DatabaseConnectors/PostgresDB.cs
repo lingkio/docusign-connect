@@ -16,7 +16,7 @@ namespace Lingk_SAML_Example.DatabaseConnectors
         {
             Provider config = LingkYaml.LingkYamlConfig.Providers.Where((prov) =>
             prov.Name.ToLower() == DBType.Postgres.ToString().ToLower()).FirstOrDefault();
-            var connectionString = "Host = " + config.Server + "; Username = " + config.UserName
+            connectionString = "Host = " + config.Server + "; Username = " + config.UserName
             + "; Password = " + config.Password + ";Database=" + config.Database;
         }
         public IDbCommand Command

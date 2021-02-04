@@ -31,7 +31,8 @@ namespace Lingk_SAML_Example.Controllers
         public AuthController(IOptions<Saml2Configuration> configAccessor)
         {
             config = configAccessor.Value;
-            config.SignatureAlgorithm = LingkYaml.LingkYamlConfig.Authn.Saml.SignatureDigest;
+            config.SignatureAlgorithm = LingkYaml.LingkYamlConfig.Authn.Saml.SignatureDigest != null ?
+            LingkYaml.LingkYamlConfig.Authn.Saml.SignatureDigest : "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
             config.CertificateValidationMode = X509CertificateValidationMode.None;
             config.RevocationMode = X509RevocationMode.NoCheck;
         }

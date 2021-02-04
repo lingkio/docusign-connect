@@ -35,9 +35,6 @@ namespace Lingk_SAML_Example.DTO
         [JsonProperty("issuerId")]
         public string IssuerId { get; set; }
 
-        [JsonProperty("serviceAddress")]
-        public Uri ServiceAddress { get; set; }
-
         [JsonProperty("signatureDigest")]
         public string SignatureDigest { get; set; }
 
@@ -47,14 +44,11 @@ namespace Lingk_SAML_Example.DTO
         [JsonProperty("template")]
         public string Template { get; set; }
 
-        [JsonProperty("account")]
-        public string Account { get; set; }
-
         [JsonProperty("url")]
         public string Url { get; set; }
 
-        [JsonProperty("linkFromProviderToSaml")]
-        public string LinkFromProviderToSaml { get; set; }
+        [JsonProperty("linkFromSamlToProvider")]
+        public string LinkFromSamlToProvider { get; set; }
 
         [JsonProperty("tabs")]
         public Tab[] Tabs { get; set; }

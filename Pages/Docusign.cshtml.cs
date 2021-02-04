@@ -57,13 +57,13 @@ namespace Lingk_SAML_Example.Pages
                 return;
             }
             this.lingkCredentials = DocusignHelper.GetAccessToken(LingkYaml.LingkYamlConfig.LingkProject);
-            if (!this.lingkCredentials.credentialsJson.accountId.Contains(selectedEnvelop.Account))
+            if (lingkCredentials.credentialsJson.accountId == null)
             {
-                ErrorMessage = "You don't have access for the account " + selectedEnvelop.Account;
+                ErrorMessage = "You don't have access for the account " + lingkCredentials.credentialsJson.accountId;
                 return;
             }
             ErrorMessage = null;
-            accountId = selectedEnvelop.Account;
+            accountId = lingkCredentials.credentialsJson.accountId;
             templateId = selectedEnvelop.Template;
 
             var name = GetClaimsByType("name");//This is to add signer
@@ -72,9 +72,9 @@ namespace Lingk_SAML_Example.Pages
         }
         public string GetDataFromPostgres(Tab foundTab)
         {
-            var link = selectedEnvelop.LinkFromProviderToSaml.Split("|");
-            var identifierVallue = GetClaimsByType(link[1]);
-            return DbConnector.GetDataFromPostgres(foundTab, link[0], identifierVallue);
+            var link = selectedEnvelop.LinkFromSamlToProvider.Split("|");
+            var identifierVallue = GetClaimsByType(link[0]);
+            return DbConnector.GetDataFromPostgres(foundTab, link[1], identifierVallue);
         }
         public string GetClaimsByType(string claimType)
         {

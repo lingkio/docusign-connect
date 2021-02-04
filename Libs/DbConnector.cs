@@ -1,8 +1,9 @@
 using System.Data;
 using Lingk_SAML_Example.Constants;
+using Lingk_SAML_Example.DatabaseConnectors;
 using Lingk_SAML_Example.DTO;
 
-namespace Lingk_SAML_Example.DatabaseConnectors
+namespace Lingk_SAML_Example.Libs
 {
     public class DbConnector
     {

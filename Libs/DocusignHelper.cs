@@ -21,7 +21,8 @@ namespace Lingk_SAML_Example.Utils
 
                 if (lingkDocusign.errorCode != null)
                 {
-                    throw new Exception(lingkDocusign.errorDescription + "," + lingkDocusign.errorMetadata);
+                    throw new Exception(lingkDocusign.errorCode + ":" + lingkDocusign.errorDescription
+                    + "," + lingkDocusign.errorMetadata);
                 }
                 var jwtGrant = new JwtGrant
                 {

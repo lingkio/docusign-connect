@@ -1,5 +1,68 @@
 # DocuSign Redirector
 
+### YAML configuration 
+```yaml
+authn:
+  saml:
+    metadataLocal: ./metadata.xml # path for identity provider’s metadata XML file.     # (Secret). The 
+    issuerId: urn:test-int.auth0.com # The identity of the Spinnaker application registered with the SAML provider.
+    signatureDigest: http://www.w3.org/2000/09/xmldsig#rsa-sha1 # Default: SHA1. Digest algorithm to sign SAML messages (optional). Valid values include "SHA1", "SHA256", "SHA384", "SHA512", "RIPEMD160" and "MD5".
+
+# connected to the DocuSign test project
+lingkProject:
+  clientId: # id required to get docusign credentials
+  clientSecret: # Secret required to get docusign credentials
+  environmentKey: testdedup # lingk environment from where we docusign credentials
+  entrypoint: https://internal.lingkto.com # enpoint from where we get the credentials 
+
+# diffrent provider from which extra data need to be fetched
+providers:
+- name: postgres # name of the provider, it should be same as specified in envelopes tabs configuration below
+  server: 172.17.0.2 # host server to make the db connection
+  database: lingk # Database where the data is stored
+  userName: postgres # Username require for connecting to db
+  password: Pass2020! # Password reqire to make the db connection
+  port: 5432 # optional, port on which db is exposed
+
+# configure your prefill embed URLs
+envelopes:
+- template: 76a8d521-27dd-4767-bdac-0f74bb65dff4  # Template id for which envelope need to be created 
+  url: /addDrop # url based on which this template will be selected
+  docusignReturnUrl : https://localhost:3002?state=123 # Redirect to the url after completing docusign 
+  linkFromSamlToProvider: nameidentifier|userIdentifier # This is required to fetch data from provider, first field will be name of saml identifier and second field will be provider identifier, this will form the where clause like 'Where  userIdentifier=[nameidentifier(value of nameidentifier from saml, only id)]'
+  tabs:
+    - id: permAddress # tab
+      provider: postgres # provider name for which connection need to be made
+      table: userinfo # required in case of diffrent provide eg. Postgres
+      sourceDataField: address # field name in give table from where data need to be shown on template
+    - id: presentAddress       
+      provider: postgres
+      table: userinfo
+      sourceDataField: address
+    - id: nameLabel
+      provider: saml
+      sourceDataField: name      
+    - id: visionLabel 
+      provider: saml
+      sourceDataField: emailaddress      
+# this template is used only during Winter Term
+# see John Doe for editing this template
+- template: ewrwerw!2ee2e
+  url: /changeAddress
+  docusignReturnUrl : https://localhost:3002?state=123
+  security: saml
+  tabs:
+    - id: FirstName 
+      sourceDataField: persons_first_name
+    - id: LastName 
+      sourceDataField: persons_last_name
+    - id: StudentId 
+      sourceDataField: student_id
+    - id: CurrentAddress 
+      sourceDataField: current_id
+
+
+```
 ### How to run
 
 ``docker build -t lingk_redirectore:0.0.1 .``
