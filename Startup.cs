@@ -22,6 +22,8 @@ using Microsoft.AspNetCore.Rewrite;
 using Lingk_SAML_Example.Middleware;
 using Lingk_SAML_Example.LingkFileSystem;
 using Lingk_SAML_Example.Constants;
+using Lingk_SAML_Example.Libs;
+using Microsoft.Extensions.Options;
 
 namespace Lingk_SAML_Example
 {
@@ -42,6 +44,9 @@ namespace Lingk_SAML_Example
             LingkFile.Create(LingkConst.TempSettingsPath, json);
             var builder = new ConfigurationBuilder().AddJsonFile(LingkConst.TempSettingsPath);
             this.Configuration = builder.Build();
+            var lingkConfig = new LingkConfig();
+            Configuration.Bind(lingkConfig);
+            LingkYaml.LingkYamlConfig = lingkConfig;
             File.Delete(LingkConst.TempSettingsPath);
             LingkFile.Create(LingkConst.LingkFileSystemPath, "");
         }
@@ -110,6 +115,7 @@ namespace Lingk_SAML_Example
 
             app.UseRewriter(options);
         }
+
     }
 
 }

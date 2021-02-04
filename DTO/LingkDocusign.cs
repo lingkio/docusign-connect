@@ -5,7 +5,7 @@ namespace Lingk_SAML_Example.DTO
     public class CredentialsJson
     {
         public string JWT { get; set; }
-        public List<string> accountId { get; set; } 
+        public List<string> accountId { get; set; }
         public string consumerKey { get; set; }
         public bool isSandbox { get; set; }
         public string name { get; set; }
@@ -20,6 +20,10 @@ namespace Lingk_SAML_Example.DTO
         public string providerLabel { get; set; }
         public string key { get; set; }
         public bool api_accessible { get; set; }
+        public string errorCode { get; set; }
+        public string errorDescription { get; set; }
+        public string errorMetadata { get; set; }
+
     }
 
     public class LingkCredentials

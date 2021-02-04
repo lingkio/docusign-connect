@@ -27,13 +27,11 @@ namespace Lingk_SAML_Example.Controllers
     {
         const string relayStateReturnUrl = "ReturnUrl";
         private readonly Saml2Configuration config;
-        private readonly LingkConfig _lingkConfig;
         // public static IConfiguration Configuration { get; }
-        public AuthController(IOptions<Saml2Configuration> configAccessor, IOptions<LingkConfig> lingkConfig)
+        public AuthController(IOptions<Saml2Configuration> configAccessor)
         {
-            _lingkConfig = lingkConfig.Value;
             config = configAccessor.Value;
-            config.SignatureAlgorithm = _lingkConfig.Authn.Saml.SignatureDigest;
+            config.SignatureAlgorithm = LingkYaml.LingkYamlConfig.Authn.Saml.SignatureDigest;
             config.CertificateValidationMode = X509CertificateValidationMode.None;
             config.RevocationMode = X509RevocationMode.NoCheck;
         }
@@ -43,8 +41,8 @@ namespace Lingk_SAML_Example.Controllers
         {
             var apiClient = new HttpClient();
             var nvc = new List<KeyValuePair<string, string>>();
-            nvc.Add(new KeyValuePair<string, string>("client_id", _lingkConfig.LingkProject.ClientId));
-            nvc.Add(new KeyValuePair<string, string>("client_secret", _lingkConfig.LingkProject.ClientSecret));
+            nvc.Add(new KeyValuePair<string, string>("client_id", LingkYaml.LingkYamlConfig.LingkProject.ClientId));
+            nvc.Add(new KeyValuePair<string, string>("client_secret", LingkYaml.LingkYamlConfig.LingkProject.ClientSecret));
             nvc.Add(new KeyValuePair<string, string>("audience", "https://lingk-int.auth0.com/api/v2/"));
             nvc.Add(new KeyValuePair<string, string>("grant_type", "client_credentials"));
             var req = new HttpRequestMessage(HttpMethod.Post, "https://lingk-int.auth0.com/oauth/token") { Content = new FormUrlEncodedContent(nvc) };

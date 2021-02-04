@@ -19,6 +19,10 @@ namespace Lingk_SAML_Example.Utils
 
                 var lingkDocusign = JsonConvert.DeserializeObject<LingkDocusign>(resp.Result);
 
+                if (lingkDocusign.errorCode != null)
+                {
+                    throw new Exception(lingkDocusign.errorDescription + "," + lingkDocusign.errorMetadata);
+                }
                 var jwtGrant = new JwtGrant
                 {
                     grant_type = LingkConst.DocuSignGrantType,

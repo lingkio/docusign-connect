@@ -16,7 +16,8 @@ using System.IO;
 using Microsoft.AspNetCore.Http;
 using Lingk_SAML_Example.LingkFileSystem;
 using Lingk_SAML_Example.Constants;
-using Lingk_SAML_Example.Connecters;
+using Lingk_SAML_Example.Libs;
+using Lingk_SAML_Example.DatabaseConnectors;
 
 namespace Lingk_SAML_Example.Pages
 {
@@ -32,13 +33,11 @@ namespace Lingk_SAML_Example.Pages
         public string Upn { get; set; }
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
-        private readonly LingkConfig _lingkConfig;
         private Lingk_SAML_Example.DTO.Envelope selectedEnvelop;
         private LingkCredentials lingkCredentials;
-        public DocusignModel(ILogger<DocusignModel> logger, IOptions<LingkConfig> lingkConfig)
+        public DocusignModel(ILogger<DocusignModel> logger)
         {
             _logger = logger;
-            _lingkConfig = lingkConfig.Value;
         }
 
         public void OnGet()
@@ -49,15 +48,15 @@ namespace Lingk_SAML_Example.Pages
                 ErrorMessage = "Please correct the url to create the envelop eg. /adddrop";
                 return;
             }
-            selectedEnvelop = _lingkConfig.Envelopes.Where(env =>
-                env.Url.ToLower() == requestedTemplate.ToLower()
+            selectedEnvelop = LingkYaml.LingkYamlConfig.Envelopes.Where(env =>
+               env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
             if (selectedEnvelop == null)
             {
                 ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
                 return;
             }
-            this.lingkCredentials = DocusignHelper.GetAccessToken(_lingkConfig.LingkProject);
+            this.lingkCredentials = DocusignHelper.GetAccessToken(LingkYaml.LingkYamlConfig.LingkProject);
             if (!this.lingkCredentials.credentialsJson.accountId.Contains(selectedEnvelop.Account))
             {
                 ErrorMessage = "You don't have access for the account " + selectedEnvelop.Account;
@@ -71,26 +70,18 @@ namespace Lingk_SAML_Example.Pages
             var emailAddress = GetClaimsByType("emailaddress");
             Url = CreateURL(emailAddress, name, emailAddress, name);
         }
-
-        public string GetClaimsByType(string claimType, string type = null, string table = null)
+        public string GetDataFromPostgres(Tab foundTab)
         {
-            if (String.IsNullOrEmpty(type) || type.ToLower() == "saml")
-            {
-                return User.Claims.FirstOrDefault((claim) =>
-                          {
-                              return claim.Type == LingkConst.ClaimsUrl + claimType;
-                          }).Value;
-            }
-            if (type.ToLower() == "postgres")
-            {
-                var data = selectedEnvelop.LinkFromProviderToSaml.Split("|");
-                var identifier = GetClaimsByType(data[1]);
-                Postgres con = new Postgres();
-                var provider = _lingkConfig.Providers.Where((prov) => prov.Name.ToLower() == type.ToLower()).FirstOrDefault();
-                return con.ExecuteQuery(provider, "Select " + claimType + " From " + table + " Where " +
-                 data[0] + "='" + identifier.Split("|")[1] + "'");
-            }
-            return "";
+            var link = selectedEnvelop.LinkFromProviderToSaml.Split("|");
+            var identifierVallue = GetClaimsByType(link[1]);
+            return DbConnector.GetDataFromPostgres(foundTab, link[0], identifierVallue);
+        }
+        public string GetClaimsByType(string claimType)
+        {
+            return User.Claims.FirstOrDefault((claim) =>
+                           {
+                               return claim.Type == LingkConst.ClaimsUrl + claimType;
+                           }).Value;
         }
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
@@ -205,7 +196,9 @@ namespace Lingk_SAML_Example.Pages
                                textTabs.Add(new Text
                                {
                                    TabLabel = foundTab.Id,
-                                   Value = GetClaimsByType(foundTab.SourceDataField, foundTab.Provider, foundTab.Table)
+                                   Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
+                                   GetDataFromPostgres(foundTab) :
+                                   GetClaimsByType(foundTab.SourceDataField)
                                });
                            }
                        });
