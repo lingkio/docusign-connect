@@ -168,9 +168,12 @@ namespace Lingk_SAML_Example.Pages
             Dictionary<Type, int> typeDict = new Dictionary<Type, int>
             {
                 {typeof(List<Text>),0},
-                {typeof(List<SignHere>),1}
+                {typeof(List<SignHere>),1},
+                {typeof(List<Checkbox>),2},
+                {typeof(List<RadioGroup>),3},
+                {typeof(List<List>),4}
             };
-
+            //TODO: This need to be refactored as there should be batter way of doing this
             validTabs.ForEach((tab) =>
             {
                 Type type = tab.GetType();
@@ -201,6 +204,72 @@ namespace Lingk_SAML_Example.Pages
                         break;
                     case 1:
                         tabs.SignHereTabs = new List<SignHere> { };
+                        break;
+                    case 2:
+                        List<Checkbox> CheckboxTabs = new List<Checkbox>();
+                        List<Checkbox> docusignCheckboxTabs = tab as List<Checkbox>;
+                        docusignCheckboxTabs.ForEach((docCheckboxTab) =>
+                       {
+                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
+                            {
+                                return tabsInYaml.Id == docCheckboxTab.TabLabel;
+                            });
+                           if (foundTab != null)
+                           {
+                               CheckboxTabs.Add(new Checkbox
+                               {
+                                   TabLabel = foundTab.Id,
+                                   Selected = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
+                                   GetDataFromPostgres(foundTab) :
+                                   GetClaimsByType(foundTab.SourceDataField)
+                               });
+                           }
+                       });
+                        tabs.CheckboxTabs = CheckboxTabs;
+                        break;
+                    case 3:
+                        List<RadioGroup> radioTabs = new List<RadioGroup>();
+                        List<RadioGroup> docusignRadioTabs = tab as List<RadioGroup>;
+                        docusignRadioTabs.ForEach((docRadioTab) =>
+                       {
+                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
+                            {
+                                return tabsInYaml.Id == docRadioTab.GroupName;
+                            });
+                           if (foundTab != null)
+                           {
+                               radioTabs.Add(new RadioGroup
+                               {
+                                   GroupName = foundTab.Id,
+                                   Radios = new List<Radio> { new Radio { Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
+                                   GetDataFromPostgres(foundTab) :
+                                   GetClaimsByType(foundTab.SourceDataField), Selected = "true" } }
+                               });
+                           }
+                       });
+                        tabs.RadioGroupTabs = radioTabs;
+                        break;
+                    case 4:
+                        List<List> listTabs = new List<List>();
+                        List<List> docusignListTabs = tab as List<List>;
+                        docusignListTabs.ForEach((docListTab) =>
+                       {
+                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
+                            {
+                                return tabsInYaml.Id == docListTab.TabLabel;
+                            });
+                           if (foundTab != null)
+                           {
+                               listTabs.Add(new List
+                               {
+                                   TabLabel = foundTab.Id,
+                                   Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
+                                   GetDataFromPostgres(foundTab) :
+                                   GetClaimsByType(foundTab.SourceDataField) 
+                               });
+                           }
+                       });
+                        tabs.ListTabs = listTabs;
                         break;
                     case -1:
                         _logger.LogWarning("Tab " + type.ToString() + " is not implemented");
