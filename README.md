@@ -1,5 +1,7 @@
 # DocuSign Redirector
 
+For running the application we need 2 files 1st is yaml configuration and 2nd metadata.xml which you get after configuring SAML, below is the sample yaml file
+
 ### YAML configuration 
 ```yaml
 authn:
@@ -63,9 +65,17 @@ envelopes:
 
 
 ```
+
+![Metadata Location in oauth](./metadata.png)
 ### How to run
 
-``docker build -t lingk_redirectore:0.0.1 .``
+``docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .``
+
+One's the yaml and metadata file are created you need to pass that while creating docker build or if you are running the application directly copy that in root folder.
+
+### For running on local
+
+``ASPNETCORE_YAML_CONFIG=test.yaml dotnet run``
 
 #### For linux  
   
@@ -77,7 +87,7 @@ dotnet dev-certs https --trust``
 
 Run docker image:
 
-``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v ${HOME}/.aspnet/https:/https/ lingk_redirectore:0.0.1``
+``ocker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v ${HOME}/.aspnet/https:/https/ lingk_redirectore:0.0.1  ``
 
 #### For Windows
 
@@ -88,7 +98,7 @@ dotnet dev-certs https --trust``
 
 Run docker image:
 
-``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="password" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ lingk_redirectore:0.0.1``
+``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml"  -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ lingk_redirectore:0.0.1``
 
 
 # Resources

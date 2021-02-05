@@ -32,7 +32,11 @@ namespace Lingk_SAML_Example
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
-            var reader = new StreamReader(LingkConst.YamlConfigPath);
+            if (Configuration["ASPNETCORE_YAML_CONFIG"] == null)
+            {
+                throw new Exception("ASPNETCORE_YAML_CONFIG need to be passed");
+            }
+            var reader = new StreamReader(Configuration["ASPNETCORE_YAML_CONFIG"]);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(reader);
 

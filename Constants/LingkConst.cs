@@ -10,7 +10,6 @@ namespace Lingk_SAML_Example.Constants
         public static string DocuSignGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
         public static string TempSettingsPath = AppDomain.CurrentDomain.BaseDirectory + "./setting.json";
         public static string LingkFileSystemPath = AppDomain.CurrentDomain.BaseDirectory + "./lingkEnvelope.json";
-        public static string YamlConfigPath = AppDomain.CurrentDomain.BaseDirectory + "./example-docusign.yaml";
         public static string ClaimsUrl = "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/";
         public static string DocusignDemoAuthUrl = "https://account-d.docusign.com/oauth/token";
         public static string DocusignProdAuthUrl = "https://account.docusign.com/oauth/token";
