@@ -1,6 +1,6 @@
 # DocuSign Redirector
 
-For running the application we need 2 files 1st is yaml configuration and 2nd metadata.xml which you get after configuring SAML, below is the sample yaml file
+For running the application we need 2 files 1st is yaml configuration and 2nd `metadata.xml` which you will get after configuring SAML, below is the sample yaml file
 
 ### YAML configuration 
 ```yaml
@@ -10,28 +10,28 @@ authn:
     issuerId: urn:test-int.auth0.com # The identity of the Spinnaker application registered with the SAML provider.
     signatureDigest: http://www.w3.org/2000/09/xmldsig#rsa-sha1 # Default: SHA1. Digest algorithm to sign SAML messages (optional). Valid values include "SHA1", "SHA256", "SHA384", "SHA512", "RIPEMD160" and "MD5".
 
-# connected to the DocuSign test project
+# Lingk clientid and secret to get DocuSign credentials
 lingkProject:
   clientId: # id required to get docusign credentials
   clientSecret: # Secret required to get docusign credentials
-  environmentKey: testdedup # lingk environment from where we docusign credentials
-  entrypoint: https://internal.lingkto.com # enpoint from where we get the credentials 
+  environmentKey: testdedup # lingk environment 
+  entrypoint: https://internal.lingkto.com # base url of lingk for getting the credentials
 
-# diffrent provider from which extra data need to be fetched
+# diffrent provider from which more data need to be fetched
 providers:
 - name: postgres # name of the provider, it should be same as specified in envelopes tabs configuration below
   server: 172.17.0.2 # host server to make the db connection
-  database: lingk # Database where the data is stored
+  database: lingk # Database name
   userName: postgres # Username require for connecting to db
   password: Pass2020! # Password reqire to make the db connection
-  port: 5432 # optional, port on which db is exposed
+  port: 5432 # optional, Port on which db is exposed
 
 # configure your prefill embed URLs
 envelopes:
-- template: 76a8d521-27dd-4767-bdac-0f74bb65dff4  # Template id for which envelope need to be created 
+- template: 76a8d521-27dd-4767-bdac-0f74bb65dff4  # Template id for which envelope need to be created, this you will get when configuring template in docusign 
   url: /addDrop # url based on which this template will be selected
-  docusignReturnUrl : https://localhost:3002?state=123 # Redirect to the url after completing docusign 
-  linkFromSamlToProvider: nameidentifier|userIdentifier # This is required to fetch data from provider, first field will be name of saml identifier and second field will be provider identifier, this will form the where clause like 'Where  userIdentifier=[nameidentifier(value of nameidentifier from saml, only id)]'
+  docusignReturnUrl : https://localhost:3002?state=123 # Redirect to this url after completing docusign signing process
+  linkFromSamlToProvider: nameidentifier|userIdentifier # This is required to fetch data from provider, first field will be name of saml identifier and second field will be provider identifier, this will form the where clause for example for above configuration it will be 'Where  userIdentifier=[nameidentifier(value of nameidentifier from saml, only id)]'
   tabs:
     - id: permAddress # tab
       provider: postgres # provider name for which connection need to be made
@@ -62,20 +62,19 @@ envelopes:
       sourceDataField: student_id
     - id: CurrentAddress 
       sourceDataField: current_id
-
-
 ```
+One's the yaml configuration and saml metadata file are created you need to pass that while creating docker build or if you are running the application directly copy that in root folder.
 
+#### Metadata Location in oauth:  
 ![Metadata Location in oauth](./metadata.png)
 ### How to run
-
-``docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .``
-
-One's the yaml and metadata file are created you need to pass that while creating docker build or if you are running the application directly copy that in root folder.
 
 ### For running on local
 
 ``ASPNETCORE_YAML_CONFIG=test.yaml dotnet run``
+### For running using docker
+
+``docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .``
 
 #### For linux  
   
