@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Lingk_SAML_Example.Constants;
 using Lingk_SAML_Example.DTO;
 using Newtonsoft.Json;
 
@@ -10,17 +11,18 @@ namespace Lingk_SAML_Example.LingkFileSystem
     {
         public static void Create(string filePath, string data)
         {
-            using (StreamWriter sw = new StreamWriter(File.Open(filePath, System.IO.FileMode.Append)))
+            using (StreamWriter sw = new StreamWriter(File.Open(filePath,
+            filePath == LingkConst.TempSettingsPath ? System.IO.FileMode.Create : System.IO.FileMode.Append)))
             {
                 sw.WriteLine(data);
             }
         }
-        public static void AddDocusignEnvelop(string filePath, LingkEnvelop envelope)
+        public static void AddDocusignEnvelope(string filePath, LingkEnvelope envelope)
         {
             // Read existing json data
             var jsonData = System.IO.File.ReadAllText(filePath);
             // De-serialize to object or create new list
-            var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelop>>(jsonData) ?? new List<LingkEnvelop>();
+            var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelope>>(jsonData) ?? new List<LingkEnvelope>();
 
             // Add any new envelope
             envelopeList.Add(envelope);
@@ -30,18 +32,18 @@ namespace Lingk_SAML_Example.LingkFileSystem
             System.IO.File.WriteAllText(filePath, jsonData);
         }
 
-        public static LingkEnvelop CheckEnvelopExists(string filePath, LingkEnvelop envelope)
+        public static LingkEnvelope CheckEnvelopeExists(string filePath, LingkEnvelope envelope)
         {
             var jsonData = System.IO.File.ReadAllText(filePath);
             // De-serialize to object or create new list
-            var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelop>>(jsonData) ?? new List<LingkEnvelop>();
+            var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelope>>(jsonData) ?? new List<LingkEnvelope>();
 
             var result = envelopeList.Find((e) =>
             {
                 return e.accountId == envelope.accountId && e.templateId == envelope.templateId;
             });
 
-           return result;
+            return result;
         }
     }
 }

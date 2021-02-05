@@ -33,7 +33,7 @@ namespace Lingk_SAML_Example.Pages
         public string Upn { get; set; }
         private readonly string signerClientId = "1000";
         private readonly ILogger<DocusignModel> _logger;
-        private Lingk_SAML_Example.DTO.Envelope selectedEnvelop;
+        private Lingk_SAML_Example.DTO.Envelope selectedEnvelope;
         private LingkCredentials lingkCredentials;
         public DocusignModel(ILogger<DocusignModel> logger)
         {
@@ -45,13 +45,13 @@ namespace Lingk_SAML_Example.Pages
             var requestedTemplate = HttpContext.Session.GetString(LingkConst.SessionKey);
             if (requestedTemplate == null)
             {
-                ErrorMessage = "Please correct the url to create the envelop eg. /adddrop";
+                ErrorMessage = "Please correct the url to create the envelope eg. /adddrop";
                 return;
             }
-            selectedEnvelop = LingkYaml.LingkYamlConfig.Envelopes.Where(env =>
+            selectedEnvelope = LingkYaml.LingkYamlConfig.Envelopes.Where(env =>
                env.Url.ToLower() == requestedTemplate.ToLower()
             ).FirstOrDefault();
-            if (selectedEnvelop == null)
+            if (selectedEnvelope == null)
             {
                 ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
                 return;
@@ -64,7 +64,7 @@ namespace Lingk_SAML_Example.Pages
             }
             ErrorMessage = null;
             accountId = lingkCredentials.credentialsJson.accountId;
-            templateId = selectedEnvelop.Template;
+            templateId = selectedEnvelope.Template;
 
             var name = GetClaimsByType("name");//This is to add signer
             var emailAddress = GetClaimsByType("emailaddress");
@@ -72,7 +72,7 @@ namespace Lingk_SAML_Example.Pages
         }
         public string GetDataFromPostgres(Tab foundTab)
         {
-            var link = selectedEnvelop.LinkFromSamlToProvider.Split("|");
+            var link = selectedEnvelope.LinkFromSamlToProvider.Split("|");
             var identifierVallue = GetClaimsByType(link[0]);
             return DbConnector.GetDataFromPostgres(foundTab, link[1], identifierVallue);
         }
@@ -86,9 +86,9 @@ namespace Lingk_SAML_Example.Pages
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
         {
-            var lingkEnvelopFilePath = LingkConst.LingkFileSystemPath;
-            var envResp = LingkFile.CheckEnvelopExists(lingkEnvelopFilePath,
-              new LingkEnvelop
+            var lingkEnvelopeFilePath = LingkConst.LingkFileSystemPath;
+            var envResp = LingkFile.CheckEnvelopeExists(lingkEnvelopeFilePath,
+              new LingkEnvelope
               {
                   accountId = accountId,
                   templateId = templateId
@@ -97,60 +97,55 @@ namespace Lingk_SAML_Example.Pages
             {
                 return envResp.recipientUrl;
             }
-            string existingEnvelopeId = null;
+
             var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
             apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
 
-            var envelopeId = existingEnvelopeId;
-            var envelopesApi = new EnvelopesApi(apiClient);
-            if (envelopeId == null)
+            Tabs tabs = GetValidTabs();
+
+            TemplateRole signer = new TemplateRole
             {
-                Tabs tabs = GetValidTabs();
-
-                TemplateRole signer = new TemplateRole
-                {
-                    Email = signerEmail,
-                    Name = signerName,
-                    RoleName = "signer",
-                    ClientUserId = signerClientId, // Change the signer to be embedded
-                    Tabs = tabs //Set tab values
-                };
-
-                TemplateRole cc = new TemplateRole
-                {
-                    Email = ccEmail,
-                    Name = ccName,
-                    RoleName = "cc"
-                };
-
-                // Step 4: Create the envelope definition
-                EnvelopeDefinition envelopeAttributes = new EnvelopeDefinition
-                {
-                    // Uses the template ID received from example 08
-                    TemplateId = templateId,
-
-                    Status = "Sent",
-                    TemplateRoles = new List<TemplateRole> { signer, cc }
-                };
-
-                EnvelopeSummary results = envelopesApi.CreateEnvelope(accountId, envelopeAttributes);
-                envelopeId = results.EnvelopeId;
+                Email = signerEmail,
+                Name = signerName,
+                RoleName = "signer",
+                ClientUserId = signerClientId, // Change the signer to be embedded
+                Tabs = tabs //Set tab values
             };
 
+            TemplateRole cc = new TemplateRole
+            {
+                Email = ccEmail,
+                Name = ccName,
+                RoleName = "cc"
+            };
+
+            // Step 4: Create the envelope definition
+            EnvelopeDefinition envelopeAttributes = new EnvelopeDefinition
+            {
+                // Uses the template ID received from example 08
+                TemplateId = templateId,
+
+                Status = "Sent",
+                TemplateRoles = new List<TemplateRole> { signer, cc }
+            };
+
+            var envelopesApi = new EnvelopesApi(apiClient);
+            EnvelopeSummary results = envelopesApi.CreateEnvelope(accountId, envelopeAttributes);
+
             RecipientViewRequest viewRequest = new RecipientViewRequest();
-            viewRequest.ReturnUrl = selectedEnvelop.DocusignReturnUrl;
+            viewRequest.ReturnUrl = selectedEnvelope.DocusignReturnUrl;
             viewRequest.AuthenticationMethod = "none";
             viewRequest.Email = signerEmail;
             viewRequest.UserName = signerName;
             viewRequest.ClientUserId = signerClientId;
-
+            var envelopeId = results.EnvelopeId;
             ViewUrl results1 = envelopesApi.CreateRecipientView(accountId, envelopeId, viewRequest);
 
             string redirectUrl = results1.Url;
-            LingkFile.AddDocusignEnvelop(lingkEnvelopFilePath,
-             new LingkEnvelop
+            LingkFile.AddDocusignEnvelope(lingkEnvelopeFilePath,
+             new LingkEnvelope
              {
-                 envelopId = envelopeId,
+                 envelopeId = envelopeId,
                  accountId = accountId,
                  recipientUrl = redirectUrl,
                  templateId = templateId
@@ -187,7 +182,7 @@ namespace Lingk_SAML_Example.Pages
                         List<Text> docusignTabs = tab as List<Text>;
                         docusignTabs.ForEach((docTextTab) =>
                        {
-                           var foundTab = selectedEnvelop.Tabs.FirstOrDefault((tabsInYaml) =>
+                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
                             {
                                 return tabsInYaml.Id == docTextTab.TabLabel;
                             });
@@ -205,18 +200,10 @@ namespace Lingk_SAML_Example.Pages
                         tabs.TextTabs = textTabs;
                         break;
                     case 1:
-                        //TODO: need to verify the below login
-                        SignHere signHere = new SignHere
-                        {
-                            AnchorString = "/sn1/",
-                            AnchorUnits = "pixels",
-                            AnchorYOffset = "10",
-                            AnchorXOffset = "20"
-                        };
-                        tabs.SignHereTabs = new List<SignHere> { signHere };
+                        tabs.SignHereTabs = new List<SignHere> { };
                         break;
                     case -1:
-                        Console.WriteLine("Tab " + type.ToString() + " is not implemented");
+                        _logger.LogWarning("Tab " + type.ToString() + " is not implemented");
                         break;
                     default:
                         break;

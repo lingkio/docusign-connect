@@ -90,11 +90,11 @@ namespace Lingk_SAML_Example.DTO
         public string Entrypoint { get; set; }
     }
 
-    public partial class LingkEnvelop
+    public partial class LingkEnvelope
     {
         public string templateId { get; set; }
         public string accountId { get; set; }
-        public string envelopId { get; set; }
+        public string envelopeId { get; set; }
         public string recipientUrl { get; set; }
     }
 }
