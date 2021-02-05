@@ -71,7 +71,7 @@ One's the yaml configuration and saml metadata file are created you need to pass
 
 ### For running on local
 
-``ASPNETCORE_YAML_CONFIG=test.yaml dotnet run``
+``ASPNETCORE_YAML_CONFIG=test.yaml dotnet run --urls="https://localhost:3002"``
 ### For running using docker
 
 ``docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .``
@@ -99,6 +99,8 @@ Run docker image:
 
 ``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml"  -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ lingk_redirectore:0.0.1``
 
+You can browse the application by hitting `https://localhost:3002`  
+Remember to add /path of the envelope to generate the envelope
 
 # Resources
 * Hosting ASP.NET Core images with Docker over HTTPS https://docs.microsoft.com/en-us/aspnet/core/security/docker-https?view=aspnetcore-5.0

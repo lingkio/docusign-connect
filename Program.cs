@@ -21,7 +21,6 @@ namespace Lingk_SAML_Example
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                    webBuilder.UseUrls("https://localhost:3002/");
                 });
     }
 }
