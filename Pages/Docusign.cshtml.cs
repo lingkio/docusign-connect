@@ -4,12 +4,9 @@ using System.Linq;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using System.Security.Claims;
 using DocuSign.eSign.Api;
 using DocuSign.eSign.Model;
 using Lingk_SAML_Example.DTO;
-using Microsoft.Extensions.Options;
-using System.Net.Http;
 using DocuSign.eSign.Client;
 using Lingk_SAML_Example.Utils;
 using System.IO;
@@ -82,6 +79,21 @@ namespace Lingk_SAML_Example.Pages
                            {
                                return claim.Type == LingkConst.ClaimsUrl + claimType;
                            }).Value;
+        }
+
+        public Tab GetSelectedTab(string label)
+        {
+            return selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
+                           {
+                               return tabsInYaml.Id == label;
+                           });
+        }
+
+        public string GetTabValue(Tab foundTab)
+        {
+            return foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
+                                               GetDataFromPostgres(foundTab) :
+                                               GetClaimsByType(foundTab.SourceDataField);
         }
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
@@ -185,18 +197,13 @@ namespace Lingk_SAML_Example.Pages
                         List<Text> docusignTabs = tab as List<Text>;
                         docusignTabs.ForEach((docTextTab) =>
                        {
-                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
-                            {
-                                return tabsInYaml.Id == docTextTab.TabLabel;
-                            });
+                           var foundTab = GetSelectedTab(docTextTab.TabLabel);
                            if (foundTab != null)
                            {
                                textTabs.Add(new Text
                                {
                                    TabLabel = foundTab.Id,
-                                   Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
-                                   GetDataFromPostgres(foundTab) :
-                                   GetClaimsByType(foundTab.SourceDataField)
+                                   Value = GetTabValue(foundTab)
                                });
                            }
                        });
@@ -210,18 +217,13 @@ namespace Lingk_SAML_Example.Pages
                         List<Checkbox> docusignCheckboxTabs = tab as List<Checkbox>;
                         docusignCheckboxTabs.ForEach((docCheckboxTab) =>
                        {
-                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
-                            {
-                                return tabsInYaml.Id == docCheckboxTab.TabLabel;
-                            });
+                           var foundTab = GetSelectedTab(docCheckboxTab.TabLabel);
                            if (foundTab != null)
                            {
                                CheckboxTabs.Add(new Checkbox
                                {
                                    TabLabel = foundTab.Id,
-                                   Selected = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
-                                   GetDataFromPostgres(foundTab) :
-                                   GetClaimsByType(foundTab.SourceDataField)
+                                   Selected = GetTabValue(foundTab)
                                });
                            }
                        });
@@ -232,18 +234,17 @@ namespace Lingk_SAML_Example.Pages
                         List<RadioGroup> docusignRadioTabs = tab as List<RadioGroup>;
                         docusignRadioTabs.ForEach((docRadioTab) =>
                        {
-                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
-                            {
-                                return tabsInYaml.Id == docRadioTab.GroupName;
-                            });
+                           var foundTab = GetSelectedTab(docRadioTab.GroupName);
                            if (foundTab != null)
                            {
                                radioTabs.Add(new RadioGroup
                                {
                                    GroupName = foundTab.Id,
-                                   Radios = new List<Radio> { new Radio { Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
-                                   GetDataFromPostgres(foundTab) :
-                                   GetClaimsByType(foundTab.SourceDataField), Selected = "true" } }
+                                   Radios = new List<Radio> { new Radio
+                                   {
+                                       Value = GetTabValue(foundTab),
+                                        Selected = "true"
+                                    } }
                                });
                            }
                        });
@@ -254,18 +255,13 @@ namespace Lingk_SAML_Example.Pages
                         List<List> docusignListTabs = tab as List<List>;
                         docusignListTabs.ForEach((docListTab) =>
                        {
-                           var foundTab = selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
-                            {
-                                return tabsInYaml.Id == docListTab.TabLabel;
-                            });
+                           var foundTab = GetSelectedTab(docListTab.TabLabel);
                            if (foundTab != null)
                            {
                                listTabs.Add(new List
                                {
                                    TabLabel = foundTab.Id,
-                                   Value = foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
-                                   GetDataFromPostgres(foundTab) :
-                                   GetClaimsByType(foundTab.SourceDataField) 
+                                   Value = GetTabValue(foundTab)
                                });
                            }
                        });
