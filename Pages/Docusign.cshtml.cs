@@ -83,9 +83,16 @@ namespace Docusign_Connect.Pages
 
         public string GetTabValue(Tab foundTab)
         {
-            return foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower() ?
-                                               GetDataFromPostgres(foundTab) :
-                                                User.Claims.GetClaimsByType(foundTab.SourceDataField);
+            if (foundTab.Provider == null || foundTab.Provider.ToLower() == "saml")
+            {
+                return User.Claims.GetClaimsByType(foundTab.SourceDataField);
+            }
+            if (foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower())
+            {
+                return GetDataFromPostgres(foundTab);
+            }
+            _logger.LogWarning(foundTab.SourceDataField + " is not implemented for tab " + foundTab.Id);
+            return "";
         }
         public string CreateURL(string signerEmail, string signerName, string ccEmail,
          string ccName)
@@ -150,7 +157,8 @@ namespace Docusign_Connect.Pages
                  envelopeId = envelopeId,
                  accountId = accountId,
                  recipientUrl = redirectUrl,
-                 templateId = templateId
+                 templateId = templateId,
+                 envelopePath = HttpContext.Session.GetString(LingkConst.SessionKey)
              });
             return redirectUrl;
         }

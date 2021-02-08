@@ -1,4 +1,4 @@
-# Docusign Connect
+# DocuSign Connect
 
 For running the application we need 2 files 1st is yaml configuration, below is the sample yaml file and 2nd `metadata.xml` which you will get after SAML configuring, below is the sample yaml file
 
@@ -47,24 +47,19 @@ envelopes:
       sourceDataField: name      
     - id: visionLabel 
       provider: saml
-      sourceDataField: emailaddress      
-# this template is used only during Winter Term
-# see John Doe for editing this template
-- template: ewrwerw!2ee2e
-  url: /changeAddress
-  docusignReturnUrl : https://localhost:3002?state=123
-  security: saml
+      sourceDataField: emailaddress
+- template: 066a58a7-c1f1-4f1f-ab33-ddacc16f2409
+  url: /salaryForm
+  docusignReturnUrl : https://www.docusign.com/
   tabs:
-    - id: FirstName 
-      sourceDataField: persons_first_name
-    - id: LastName 
-      sourceDataField: persons_last_name
-    - id: StudentId 
-      sourceDataField: student_id
-    - id: CurrentAddress 
-      sourceDataField: current_id
+    - id: legalNameLabel 
+      sourceDataField: name
+    - id: familiarNameLabel 
+      sourceDataField: name
+    - id: familiaraNameLabel 
+      sourceDataField: name
 ```
-One's the yaml configuration and saml metadata file are created you need to pass that while creating docker build or if you are running the application directly copy that in root folder.
+One's the yaml configuration and saml metadata file are created you need to pass that while creating docker build or if you are running the application locally then copy the file directly to root folder.
 
 ### Metadata Location in oauth:  
 ![Metadata Location in oauth](./metadata.png)
@@ -74,33 +69,45 @@ One's the yaml configuration and saml metadata file are created you need to pass
 
 ### For running on local
 
-``ASPNETCORE_YAML_CONFIG=test.yaml dotnet run --urls="https://localhost:3002"``
+```bash
+ ASPNETCORE_YAML_CONFIG=test.yaml dotnet run --urls="https://localhost:3002"
+ ```
 ### For running using docker
 
-``docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .``
+```bash
+docker build --build-arg YAML_CONFIG_PATH=./test.yaml --build-arg METADATA_PATH=./metadata.xml   -t lingk_redirectore:0.0.1 .
+```
 
 #### For linux  
   
   
 Generate Certificate: 
 
-``dotnet dev-certs https -ep ${HOME}/.aspnet/https/aspnetapp.pfx -p { password here }
-dotnet dev-certs https --trust``
+```bash
+dotnet dev-certs https -ep ${HOME}/.aspnet/https/aspnetapp.pfx -p { password here }
+dotnet dev-certs https --trust
+```
 
 Run docker image:
 
-``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v ${HOME}/.aspnet/https:/https/ lingk_redirectore:0.0.1  ``
+```bash
+docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml" -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v ${HOME}/.aspnet/https:/https/ lingk_redirectore:0.0.1  
+```
 
 #### For Windows
 
 Generate Certificate: 
 
-``dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p { password here }
-dotnet dev-certs https --trust``
+```bash 
+dotnet dev-certs https -ep %USERPROFILE%\.aspnet\https\aspnetapp.pfx -p { password here }
+dotnet dev-certs https --trust
+```
 
 Run docker image:
 
-``docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml"  -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ lingk_redirectore:0.0.1``
+```bash
+docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://+" -e ASPNETCORE_HTTPS_PORT=8001 -e ASPNETCORE_Kestrel__Certificates__Default__Password="test" -e ASPNETCORE_YAML_CONFIG="test.yaml"  -e ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx -v %USERPROFILE%\.aspnet\https:/https/ lingk_redirectore:0.0.1
+```
 <br/>
 <br/>
 ### How to browse the application:

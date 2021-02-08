@@ -91,5 +91,6 @@ namespace Docusign_Connect.DTO
         public string accountId { get; set; }
         public string envelopeId { get; set; }
         public string recipientUrl { get; set; }
+        public string envelopePath { get; set; }
     }
 }

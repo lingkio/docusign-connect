@@ -44,5 +44,15 @@ namespace Docusign_Connect.LingkFileSystem
 
             return result;
         }
+
+        public static List<LingkEnvelope> ReadDocusignEnvelopesFromFileSystem(string filePath)
+        {
+            // Read existing json data
+            var jsonData = System.IO.File.ReadAllText(filePath);
+            // De-serialize to object or create new list
+            var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelope>>(jsonData) ?? new List<LingkEnvelope>();
+            
+            return envelopeList;
+        }
     }
 }

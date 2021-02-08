@@ -28,6 +28,7 @@ namespace Docusign_Connect
             {
                 throw new Exception("ASPNETCORE_YAML_CONFIG need to be passed");
             }
+            //TODO: reading of YAML file should be direct
             var reader = new StreamReader(Configuration["ASPNETCORE_YAML_CONFIG"]);
             var deserializer = new DeserializerBuilder().Build();
             var yamlObject = deserializer.Deserialize(reader);
