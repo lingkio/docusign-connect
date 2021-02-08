@@ -110,15 +110,18 @@ docker run --rm -it -p 3000:80 -p 3002:443 -e ASPNETCORE_URLS="https://+;http://
 ```
 <br/>
 <br/>
-### How to browse the application:
+
+###  How to browse the application:
 You can browse the application by hitting `https://localhost:3002`  
 Remember to add /path at end of the url to generate the envelope
 <br/>
 <br/>
+
 ## DocuSign References:
 Docusign envelope recipient tabs resource https://developers.docusign.com/docs/esign-rest-api/reference/envelopes/enveloperecipienttabs/#tab-types/  
 Recipients resources : https://developers.docusign.com/docs/esign-rest-api/esign101/concepts/recipients/
 <br/>
 <br/>
+
 # Resources:
 * Hosting ASP.NET Core images with Docker over HTTPS https://docs.microsoft.com/en-us/aspnet/core/security/docker-https?view=aspnetcore-5.0
