@@ -1,0 +1,14 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+    @if(!User.Identity.IsAuthenticated){
+         <h4 class="display-5">Please correct the url to generate the envelope</h4>
+    }else{
+        <h4 class="display-5">Click <a asp-area="" asp-page="/Docusign">Docusign Url</a> to generate the envelope</h4>
+    }
+    @* <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p> *@
+</div>
