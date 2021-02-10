@@ -33,6 +33,7 @@ envelopes:
   url: /addDrop # url based on which this template will be selected
   docusignReturnUrl : https://localhost:3002?state=123 # Redirect to this url after completing docusign signing process
   linkFromSamlToProvider: nameidentifier|userIdentifier # This is required to fetch data from provider, first field will be name of saml identifier and second field will be provider identifier, this will form the where clause for example for above configuration it will be 'Where  userIdentifier=[nameidentifier(value of nameidentifier from saml, only id)]'
+  # if the linking is through nameidentifier then we need to split the value
   tabs:
     - id: permAddress # tab
       provider: postgres # provider name for which connection need to be made

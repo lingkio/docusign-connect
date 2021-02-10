@@ -28,7 +28,7 @@ namespace Docusign_Connect.Pages
         private readonly ILogger<DocusignModel> _logger;
         private Docusign_Connect.DTO.Envelope selectedEnvelope;
         private LingkCredentials lingkCredentials;
-
+        private string location;
         private ApiClient apiClient;
         Dictionary<Type, int> typeDict;
         public DocusignModel(ILogger<DocusignModel> logger)
@@ -46,18 +46,18 @@ namespace Docusign_Connect.Pages
 
         public void OnGet()
         {
-            var requestedTemplate = HttpContext.Session.GetString(LingkConst.SessionKey);
-            if (requestedTemplate == null)
+            location = HttpContext.Session.GetString(LingkConst.SessionKey);
+            if (location == null)
             {
                 ErrorMessage = "Please correct the url to create the envelope eg. /adddrop";
                 return;
             }
             selectedEnvelope = LingkYaml.LingkYamlConfig.Envelopes.Where(env =>
-               env.Url.ToLower() == requestedTemplate.ToLower()
+               env.Url.ToLower() == location.ToLower()
             ).FirstOrDefault();
             if (selectedEnvelope == null)
             {
-                ErrorMessage = requestedTemplate + " url does not exists in yaml configuration";
+                ErrorMessage = location + " url does not exists in yaml configuration";
                 return;
             }
             this.lingkCredentials = DocusignHelper.GetAccessToken(LingkYaml.LingkYamlConfig.LingkProject);
@@ -79,16 +79,47 @@ namespace Docusign_Connect.Pages
         }
         public string GetDataFromPostgres(Tab foundTab)
         {
+            if (selectedEnvelope.LinkFromSamlToProvider == null)
+            {
+                _logger.LogWarning("LinkFromSamlToProvider not found in yaml for envelop url " + location);
+                return "";
+            }
             var link = selectedEnvelope.LinkFromSamlToProvider.Split("|");
-            var identifierVallue = User.Claims.GetClaimsByType(link[0]);
-            return DbConnector.GetDataFromPostgres(foundTab, link[1], identifierVallue);
+            if (link == null || link.Length != 2)
+            {
+                _logger.LogWarning("LinkFromSamlToProvider value are not correct for envelop url " + location);
+                return "";
+            }
+            var identifierValue = User.Claims.GetClaimsByType(link[0]);
+            if (identifierValue == null)
+            {
+                _logger.LogWarning("LinkFromSamlToProvider identifierValue not found in Saml claims for envelop url " + location);
+                return "";
+
+            }
+            var idValue = identifierValue;
+            if (identifierValue.Contains('|'))
+            {
+                var actualValue = identifierValue.Split("|");
+                idValue = actualValue[0];
+                if (actualValue.Length > 1)
+                {
+                    idValue = actualValue[1];
+                }
+            }
+            var data = DbConnector.GetDataFromPostgres(foundTab, link[1], idValue);
+            if (data == "")
+            {
+                _logger.LogWarning("No value found for " + foundTab.Provider + " with id " + link[1] + " and value " + idValue + " for field " + foundTab.SourceDataField);
+            }
+            return data;
         }
 
         public string GetTabValue(Tab foundTab)
         {
             if (foundTab.SourceDataField == null || foundTab.Id == null)
             {
-                _logger.LogWarning("Either Id or SourceDataField is missing in yaml configuration for one of the field in envelope url " + HttpContext.Session.GetString(LingkConst.SessionKey));
+                _logger.LogWarning("Either Id or SourceDataField is missing in yaml configuration for one of the field in envelope url " + location);
                 return "";
             }
             if (foundTab.Provider == null || foundTab.Provider.ToLower() == "saml")
@@ -168,7 +199,7 @@ namespace Docusign_Connect.Pages
                  accountId = accountId,
                  recipientUrl = redirectUrl,
                  templateId = templateId,
-                 envelopePath = HttpContext.Session.GetString(LingkConst.SessionKey)
+                 envelopePath = location
              });
             return redirectUrl;
         }
