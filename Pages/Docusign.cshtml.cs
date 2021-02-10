@@ -9,10 +9,8 @@ using DocuSign.eSign.Model;
 using Docusign_Connect.DTO;
 using DocuSign.eSign.Client;
 using Microsoft.AspNetCore.Http;
-using Docusign_Connect.LingkFileSystem;
 using Docusign_Connect.Constants;
 using Docusign_Connect.Libs;
-using Docusign_Connect.Utils;
 
 namespace Docusign_Connect.Pages
 {
@@ -30,6 +28,8 @@ namespace Docusign_Connect.Pages
         private readonly ILogger<DocusignModel> _logger;
         private Docusign_Connect.DTO.Envelope selectedEnvelope;
         private LingkCredentials lingkCredentials;
+
+        private ApiClient apiClient;
         Dictionary<Type, int> typeDict;
         public DocusignModel(ILogger<DocusignModel> logger)
         {
@@ -70,6 +70,9 @@ namespace Docusign_Connect.Pages
             accountId = lingkCredentials.credentialsJson.accountId;
             templateId = selectedEnvelope.Template;
 
+            apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
+            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
+
             var name = User.Claims.GetClaimsByType("name");//This is to add signer
             var emailAddress = User.Claims.GetClaimsByType("emailaddress");
             DocusignUrl = CreateURL(emailAddress, name, emailAddress, name);
@@ -83,6 +86,11 @@ namespace Docusign_Connect.Pages
 
         public string GetTabValue(Tab foundTab)
         {
+            if (foundTab.SourceDataField == null || foundTab.Id == null)
+            {
+                _logger.LogWarning("Either Id or SourceDataField is missing in yaml configuration for one of the field in envelope url " + HttpContext.Session.GetString(LingkConst.SessionKey));
+                return "";
+            }
             if (foundTab.Provider == null || foundTab.Provider.ToLower() == "saml")
             {
                 var result = User.Claims.GetClaimsByType(foundTab.SourceDataField.Trim());
@@ -113,9 +121,6 @@ namespace Docusign_Connect.Pages
             {
                 return envResp.recipientUrl;
             }
-
-            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
-            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
 
             Tabs tabs = GetValidTabs();
 
@@ -167,54 +172,72 @@ namespace Docusign_Connect.Pages
              });
             return redirectUrl;
         }
+        public List<string> GetValidDocuments()
+        {
+            var templateApi = new TemplatesApi(apiClient);
+            TemplateDocumentsResult results = templateApi.ListDocumentsAsync(accountId, templateId).Result;
+            if (results != null && results.TemplateDocuments != null)
+            {
+                return results.TemplateDocuments.Select((doc) =>
+                 {
+                     return doc.DocumentId;
+                 }).ToList();
+            }
+            throw new Exception("No document found for configuration");
+        }
         public Tabs GetValidTabs()
         {
+            var docs = GetValidDocuments();
             Tabs tabs = new Tabs();
-            var apiClient = new ApiClient(lingkCredentials.credentialsJson.isSandbox ? LingkConst.DocusignDemoUrl : LingkConst.DocusignProdUrl);
-            apiClient.Configuration.DefaultHeader.Add("Authorization", "Bearer " + this.lingkCredentials.docuSignToken.access_token);
-            var templateApi = new TemplatesApi(apiClient);
-            Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, "1").Result;
-
-            //Get only those tabs which is set while template creation
-            var validTabs = results.GetType()
-                            .GetProperties() //get all properties on object
-                            .Select(pi => pi.GetValue(results))
-                            .Where(value => value != null).ToList(); //get value for the property     
-
-            validTabs.ForEach((tab) =>
+            List<Text> textTabs = new List<Text>();
+            List<Checkbox> CheckboxTabs = new List<Checkbox>();
+            List<List> listTabs = new List<List>();
+            List<RadioGroup> radioTabs = new List<RadioGroup>();
+            docs.ForEach((docId) =>
             {
-                Type type = tab.GetType();
-                var key = typeDict.ContainsKey(type) ? typeDict[type] : -1;
-                switch (key)
+                var templateApi = new TemplatesApi(apiClient);
+                Tabs results = templateApi.GetDocumentTabsAsync(accountId, templateId, docId).Result;
+
+                //Get only those tabs which is set while template creation
+                var validTabs = results.GetType()
+                                .GetProperties() //get all properties on object
+                                .Select(pi => pi.GetValue(results))
+                                .Where(value => value != null).ToList(); //get value for the property     
+
+                validTabs.ForEach((tab) =>
                 {
-                    case 0:
-                        tabs.TextTabs = GetTextTabs(tab as List<Text>);
-                        break;
-                    case 1:
-                        tabs.SignHereTabs = new List<SignHere> { };
-                        break;
-                    case 2:
-                        tabs.CheckboxTabs = GetCheckboxTabs(tab as List<Checkbox>);
-                        break;
-                    case 3:
-                        tabs.RadioGroupTabs = GetRadioGroupTabs(tab as List<RadioGroup>);
-                        break;
-                    case 4:
-                        tabs.ListTabs = GetListTabs(tab as List<List>);
-                        break;
-                    case -1:
-                        _logger.LogWarning("Tab " + type.ToString() + " is not implemented");
-                        break;
-                    default:
-                        break;
-                }
+                    Type type = tab.GetType();
+                    var key = typeDict.ContainsKey(type) ? typeDict[type] : -1;
+                    switch (key)
+                    {
+                        case 0:
+                            tabs.TextTabs = GetTextTabs(tab as List<Text>, textTabs);
+                            break;
+                        case 1:
+                            tabs.SignHereTabs = new List<SignHere> { };
+                            break;
+                        case 2:
+                            tabs.CheckboxTabs = GetCheckboxTabs(tab as List<Checkbox>, CheckboxTabs);
+                            break;
+                        case 3:
+                            tabs.RadioGroupTabs = GetRadioGroupTabs(tab as List<RadioGroup>, radioTabs);
+                            break;
+                        case 4:
+                            tabs.ListTabs = GetListTabs(tab as List<List>, listTabs);
+                            break;
+                        case -1:
+                            _logger.LogWarning("Tab " + type.ToString() + " is not implemented");
+                            break;
+                        default:
+                            break;
+                    }
+                });
             });
             return tabs;
         }
-        public List<Text> GetTextTabs(List<Text> tab)
+        public List<Text> GetTextTabs(List<Text> existingTab, List<Text> textTabs)
         {
-            List<Text> textTabs = new List<Text>();
-            List<Text> docusignTabs = tab;
+            List<Text> docusignTabs = existingTab;
             docusignTabs.ForEach((docTextTab) =>
            {
                var foundTab = selectedEnvelope.GetSelectedTab(docTextTab.TabLabel);
@@ -229,10 +252,9 @@ namespace Docusign_Connect.Pages
            });
             return textTabs;
         }
-        public List<Checkbox> GetCheckboxTabs(List<Checkbox> tab)
+        public List<Checkbox> GetCheckboxTabs(List<Checkbox> existingTab, List<Checkbox> CheckboxTabs)
         {
-            List<Checkbox> CheckboxTabs = new List<Checkbox>();
-            List<Checkbox> docusignCheckboxTabs = tab;
+            List<Checkbox> docusignCheckboxTabs = existingTab;
             docusignCheckboxTabs.ForEach((docCheckboxTab) =>
            {
                var foundTab = selectedEnvelope.GetSelectedTab(docCheckboxTab.TabLabel);
@@ -247,10 +269,9 @@ namespace Docusign_Connect.Pages
            });
             return CheckboxTabs;
         }
-        public List<List> GetListTabs(List<List> tab)
+        public List<List> GetListTabs(List<List> existingTab, List<List> listTabs)
         {
-            List<List> listTabs = new List<List>();
-            List<List> docusignListTabs = tab;
+            List<List> docusignListTabs = existingTab;
             docusignListTabs.ForEach((docListTab) =>
            {
                var foundTab = selectedEnvelope.GetSelectedTab(docListTab.TabLabel);
@@ -265,10 +286,9 @@ namespace Docusign_Connect.Pages
            });
             return listTabs;
         }
-        public List<RadioGroup> GetRadioGroupTabs(List<RadioGroup> tab)
+        public List<RadioGroup> GetRadioGroupTabs(List<RadioGroup> existingTab, List<RadioGroup> radioTabs)
         {
-            List<RadioGroup> radioTabs = new List<RadioGroup>();
-            List<RadioGroup> docusignRadioTabs = tab;
+            List<RadioGroup> docusignRadioTabs = existingTab;
             docusignRadioTabs.ForEach((docRadioTab) =>
            {
                var foundTab = selectedEnvelope.GetSelectedTab(docRadioTab.GroupName);

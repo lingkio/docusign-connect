@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using System.Linq;
 using RestSharp;
 
-namespace Docusign_Connect.Utils
+namespace Docusign_Connect.Libs
 {
     public class DocusignHelper
     {

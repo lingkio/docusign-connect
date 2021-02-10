@@ -12,7 +12,10 @@ namespace Docusign_Connect.Libs
         {
             var result = Claims.FirstOrDefault((claim) =>
                                         {
-                                            return claim.Type == LingkConst.ClaimsUrl + claimType;
+                                            return claim.Type == LingkConst.ClaimsUrl + claimType ||
+                                           claim.Type == LingkConst.ClaimsUrlWithYear + claimType ||
+                                           claim.Type == LingkConst.IdentitiesDefault + claimType ||
+                                            claim.Type == LingkConst.SamlClaimBaseUrl + claimType;
                                         });
             if (result != null && result.Value != null)
             {
@@ -24,7 +27,7 @@ namespace Docusign_Connect.Libs
         {
             return selectedEnvelope.Tabs.FirstOrDefault((tabsInYaml) =>
                            {
-                               return tabsInYaml.Id == label;
+                               return tabsInYaml.Id.Trim() == label.Trim();
                            });
         }
     }

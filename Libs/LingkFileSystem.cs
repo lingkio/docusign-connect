@@ -4,14 +4,13 @@ using Docusign_Connect.Constants;
 using Docusign_Connect.DTO;
 using Newtonsoft.Json;
 
-namespace Docusign_Connect.LingkFileSystem
+namespace Docusign_Connect.Libs
 {
     public static class LingkFile
     {
         public static void Create(string filePath, string data)
         {
-            using (StreamWriter sw = new StreamWriter(File.Open(filePath,
-            filePath == LingkConst.TempSettingsPath ? System.IO.FileMode.Create : System.IO.FileMode.Append)))
+            using (StreamWriter sw = new StreamWriter(File.Open(filePath, System.IO.FileMode.Append)))
             {
                 sw.WriteLine(data);
             }
@@ -51,7 +50,7 @@ namespace Docusign_Connect.LingkFileSystem
             var jsonData = System.IO.File.ReadAllText(filePath);
             // De-serialize to object or create new list
             var envelopeList = JsonConvert.DeserializeObject<List<LingkEnvelope>>(jsonData) ?? new List<LingkEnvelope>();
-            
+
             return envelopeList;
         }
     }

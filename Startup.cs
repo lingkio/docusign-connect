@@ -8,12 +8,9 @@ using Microsoft.Extensions.Hosting;
 using ITfoxtec.Identity.Saml2;
 using ITfoxtec.Identity.Saml2.Schemas.Metadata;
 using ITfoxtec.Identity.Saml2.MvcCore.Configuration;
-using YamlDotNet.Serialization;
-using System.IO;
 using Docusign_Connect.DTO;
 using Microsoft.AspNetCore.Rewrite;
 using Docusign_Connect.Middleware;
-using Docusign_Connect.LingkFileSystem;
 using Docusign_Connect.Constants;
 using Docusign_Connect.Libs;
 
@@ -21,30 +18,22 @@ namespace Docusign_Connect
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IWebHostEnvironment env)
         {
             Configuration = configuration;
             if (Configuration["ASPNETCORE_YAML_CONFIG"] == null)
             {
                 throw new Exception("ASPNETCORE_YAML_CONFIG need to be passed");
             }
-            //TODO: reading of YAML file should be direct
-            var reader = new StreamReader(Configuration["ASPNETCORE_YAML_CONFIG"]);
-            var deserializer = new DeserializerBuilder().Build();
-            var yamlObject = deserializer.Deserialize(reader);
-
-            var serializer = new SerializerBuilder()
-                .JsonCompatible()
-                .Build();
-
-            var json = serializer.Serialize(yamlObject);
-            LingkFile.Create(LingkConst.TempSettingsPath, json);
-            var builder = new ConfigurationBuilder().AddJsonFile(LingkConst.TempSettingsPath);
-            this.Configuration = builder.Build();
+            var builder = new ConfigurationBuilder()
+                   .SetBasePath(env.ContentRootPath)
+                   .AddYamlFile(Configuration["ASPNETCORE_YAML_CONFIG"], optional: false)
+                   .AddEnvironmentVariables();
+            Configuration = builder.Build();
+            
             var lingkConfig = new LingkConfig();
             Configuration.Bind(lingkConfig);
             LingkYaml.LingkYamlConfig = lingkConfig;
-            File.Delete(LingkConst.TempSettingsPath);
             LingkFile.Create(LingkConst.LingkFileSystemPath, "");
         }
 

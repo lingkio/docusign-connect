@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Docusign_Connect.DTO;
 
-namespace Docusign_Connect.Utils
+namespace Docusign_Connect.Libs
 {
     public class LingkHelper
     {
