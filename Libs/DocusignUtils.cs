@@ -10,10 +10,15 @@ namespace Docusign_Connect.Libs
     {
         public static string GetClaimsByType(this IEnumerable<Claim> Claims, string claimType)
         {
-            return Claims.FirstOrDefault((claim) =>
+            var result = Claims.FirstOrDefault((claim) =>
                                         {
                                             return claim.Type == LingkConst.ClaimsUrl + claimType;
-                                        }).Value;
+                                        });
+            if (result != null && result.Value != null)
+            {
+                return result.Value;
+            }
+            return "";
         }
         public static Tab GetSelectedTab(this Envelope selectedEnvelope, string label)
         {

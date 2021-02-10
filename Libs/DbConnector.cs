@@ -10,7 +10,7 @@ namespace Docusign_Connect.Libs
         public static IDatabase database;
         public static string GetDataFromPostgres(Tab selectedTab, string providerId, string identifierValue)
         {
-            var query = "Select " + selectedTab.SourceDataField.ToLower()
+            var query = "Select " + selectedTab.SourceDataField.Trim().ToLower()
              + " From " + selectedTab.Table.ToLower() +
               " Where " + providerId + "='" + identifierValue.Split("|")[1] + "'";
             if (database == null)
