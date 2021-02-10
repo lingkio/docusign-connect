@@ -85,7 +85,12 @@ namespace Docusign_Connect.Pages
         {
             if (foundTab.Provider == null || foundTab.Provider.ToLower() == "saml")
             {
-                return User.Claims.GetClaimsByType(foundTab.SourceDataField.Trim());
+                var result = User.Claims.GetClaimsByType(foundTab.SourceDataField.Trim());
+                if (result == "")
+                {
+                    _logger.LogWarning(foundTab.SourceDataField + " is not implemented for tab " + foundTab.Id);
+                }
+                return result;
             }
             if (foundTab.Provider.ToLower() == DBType.Postgres.ToString().ToLower())
             {

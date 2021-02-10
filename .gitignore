@@ -5,5 +5,5 @@ obj/
 .vscode/
 Properties/
 setting.json
-example-docusign.yaml
 private.key
+*.yaml
