@@ -76,6 +76,8 @@ namespace Docusign_Connect.Pages
             var name = User.Claims.GetClaimsByType("name");//This is to add signer
             var emailAddress = User.Claims.GetClaimsByType("emailaddress");
             DocusignUrl = CreateURL(emailAddress, name, emailAddress, name);
+            HttpContext.Session.SetString(LingkConst.SessionKey, "");
+            Response.Redirect(DocusignUrl);
         }
         public string GetDataFromPostgres(Tab foundTab)
         {
