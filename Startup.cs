@@ -34,7 +34,7 @@ namespace Docusign_Connect
             var lingkConfig = new LingkConfig();
             Configuration.Bind(lingkConfig);
             LingkYaml.LingkYamlConfig = lingkConfig;
-            LingkFile.Create(LingkConst.LingkFileSystemPath, "");
+            LingkFile.Create("");
         }
 
         public IConfiguration Configuration { get; }

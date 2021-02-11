@@ -17,17 +17,21 @@
         <table id="myTable" class="table table-bordered" cellspacing="0">
             <tr>  
                 <th>Envelope Path</th>  
+                <th>Envelope Id </th>      
                 <th>Account Id </th>  
-                <th>Template Id </th>      
+                <th>Template Id </th>                     
                 <th>Recipient Url</th>  
+                 <th>Delete Envelope</th>  
             </tr>  
             @foreach (var e in @Model.Envelopes)  
             {  
                 <tr>  
                     <td>@e.envelopePath</td>  
+                    <td>@e.envelopeId</td>
                     <td>@e.accountId</td>  
-                    <td>@e.templateId</td>              
-                    <td><a target="_blank" href=@e.recipientUrl>Click to open</a></td>    
+                    <td>@e.templateId</td>                                    
+                    <td><a target="_blank" href=@e.recipientUrl>Click to open</a></td>  
+                    <td style="text-align:center" class="deleteIcon"><a href="/Dashboard/Delete/@e.envelopeId"><img src="~/Images/deleteIcon.svg" /> </a>  </td>
                 </tr>  
             }   
         </table>

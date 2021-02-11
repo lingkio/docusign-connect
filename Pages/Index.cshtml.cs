@@ -21,11 +21,11 @@ namespace Docusign_Connect.Pages
         public void OnGet()
         {
             var session = HttpContext.Session.GetString(LingkConst.SessionKey);
-            if (session != null && session != "")
+            if (session != null && session != "" && !session.Contains("Dashboard"))
             {
                 Response.Redirect("/Docusign");
             }
-            Envelopes = LingkFile.ReadDocusignEnvelopesFromFileSystem(LingkConst.LingkFileSystemPath);
+            Envelopes = LingkFile.ReadEnvelopesFromFileSystem();
         }
     }
 }

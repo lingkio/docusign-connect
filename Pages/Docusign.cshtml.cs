@@ -144,7 +144,7 @@ namespace Docusign_Connect.Pages
          string ccName)
         {
             var lingkEnvelopeFilePath = LingkConst.LingkFileSystemPath;
-            var envResp = LingkFile.CheckEnvelopeExists(lingkEnvelopeFilePath,
+            var envResp = LingkFile.CheckEnvelopeExists(
               new LingkEnvelope
               {
                   accountId = accountId,
@@ -194,7 +194,7 @@ namespace Docusign_Connect.Pages
             ViewUrl results1 = envelopesApi.CreateRecipientView(accountId, envelopeId, viewRequest);
 
             string redirectUrl = results1.Url;
-            LingkFile.AddDocusignEnvelope(lingkEnvelopeFilePath,
+            LingkFile.AddDocusignEnvelope(
              new LingkEnvelope
              {
                  envelopeId = envelopeId,

@@ -8,14 +8,15 @@ namespace Docusign_Connect.Libs
 {
     public static class LingkFile
     {
-        public static void Create(string filePath, string data)
+        public static string filePath = LingkConst.LingkFileSystemPath;
+        public static void Create(string data)
         {
             using (StreamWriter sw = new StreamWriter(File.Open(filePath, System.IO.FileMode.Append)))
             {
                 sw.WriteLine(data);
             }
         }
-        public static void AddDocusignEnvelope(string filePath, LingkEnvelope envelope)
+        public static void AddDocusignEnvelope(LingkEnvelope envelope)
         {
             // Read existing json data
             var jsonData = System.IO.File.ReadAllText(filePath);
@@ -30,7 +31,15 @@ namespace Docusign_Connect.Libs
             System.IO.File.WriteAllText(filePath, jsonData);
         }
 
-        public static LingkEnvelope CheckEnvelopeExists(string filePath, LingkEnvelope envelope)
+        public static void UpdateEnvelopes(List<LingkEnvelope> envelopes)
+        {
+            // Update json data string
+            var jsonData = JsonConvert.SerializeObject(envelopes);
+            System.IO.File.WriteAllText(filePath, jsonData);
+        }
+
+
+        public static LingkEnvelope CheckEnvelopeExists(LingkEnvelope envelope)
         {
             var jsonData = System.IO.File.ReadAllText(filePath);
             // De-serialize to object or create new list
@@ -44,7 +53,7 @@ namespace Docusign_Connect.Libs
             return result;
         }
 
-        public static List<LingkEnvelope> ReadDocusignEnvelopesFromFileSystem(string filePath)
+        public static List<LingkEnvelope> ReadEnvelopesFromFileSystem()
         {
             // Read existing json data
             var jsonData = System.IO.File.ReadAllText(filePath);
