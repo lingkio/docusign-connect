@@ -8,35 +8,36 @@
     @if(!User.Identity.IsAuthenticated){
          <h4 class="display-5">Please correct the url to generate the envelope</h4>
     }else{
-        <h4 class="display-5">Select the generated url or click on <a asp-area="" asp-page="/Docusign">Docusign Url link</a> to generate the new one</h4>
+        <h4 class="display-5">Select the generated url or click on <a asp-area="" asp-page="/Docusign">Docusign Url </a>link to generate the new one</h4>
     } 
 </div>
 <br/>
 <div>
-    @if(@Model.Envelopes != null && @Model.Envelopes.Count > 0){
-        <table id="myTable" class="table table-bordered" cellspacing="0">
-            <tr>  
-                <th>Envelope Path</th>  
-                <th>Envelope Id </th>      
-                <th>Account Id </th>  
-                <th>Template Id </th>                     
-                <th>Recipient Url</th>  
-                 <th>Delete Envelope</th>  
-            </tr>  
-            @foreach (var e in @Model.Envelopes)  
-            {  
-                <tr>  
-                    <td>@e.envelopePath</td>  
-                    <td>@e.envelopeId</td>
-                    <td>@e.accountId</td>  
-                    <td>@e.templateId</td>                                    
-                    <td><a target="_blank" href=@e.recipientUrl>Click to open</a></td>  
-                    <td style="text-align:center" class="deleteIcon"><a href="/Dashboard/Delete/@e.envelopeId"><img src="~/Images/deleteIcon.svg" /> </a>  </td>
-                </tr>  
-            }   
-        </table>
+    @if(@User.Identity.IsAuthenticated){
+        @if(@Model.Envelopes != null && @Model.Envelopes.Count > 0){
+                <table id="myTable" class="table table-bordered" cellspacing="0">
+                    <tr>  
+                        <th>Envelope Path</th>  
+                        <th>Envelope Id </th>      
+                        <th>Account Id </th>  
+                        <th>Template Id </th>                     
+                        <th>Recipient Url</th>  
+                        <th>Delete Envelope</th>  
+                    </tr>  
+                    @foreach (var e in @Model.Envelopes)  
+                    {  
+                        <tr>  
+                            <td>@e.envelopePath</td>  
+                            <td>@e.envelopeId</td>
+                            <td>@e.accountId</td>  
+                            <td>@e.templateId</td>                                    
+                            <td><a target="_blank" href=@e.recipientUrl>Click to open</a></td>  
+                            <td style="text-align:center" class="deleteIcon"><a href="/Dashboard/Delete/@e.envelopeId"><img src="~/Images/deleteIcon.svg" /> </a>  </td>
+                        </tr>  
+                    }   
+                </table>
+            }
     }
-    
 </div>
 </div>
 
