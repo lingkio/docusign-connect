@@ -15,7 +15,7 @@ lingkProject:
   clientId: # id required to get docusign credentials
   clientSecret: # Secret required to get docusign credentials
   environmentKey: testdedup # lingk environment 
-  entrypoint: https://internal.lingkto.com # base url of lingk for getting the credentials
+  entrypoint: https://www.lingkapis.com # base url of lingk for getting the credentials
 
 # This is requry only if you want to fetch more data which is not in SAML assertion 
 # Below is the sample provider from which more data need to be fetched
